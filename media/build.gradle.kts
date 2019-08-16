@@ -16,7 +16,6 @@ android {
 
 repositories {
     jcenter()
-    mavenCentral()
     mavenLocal()
     google()
 }
@@ -24,10 +23,8 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
-    implementation("com.mparticle:android-core:5.9.7-SNAPSHOT")
-    implementation("com.mparticle:android-kit-base:5.9.7-SNAPSHOT")
+    implementation("com.mparticle:android-core:5.9.8-SNAPSHOT")
+    implementation("com.mparticle:android-kit-base:5.9.8-SNAPSHOT")
 
     testImplementation("junit:junit:4.12")
-//    testImplementation("org.jetbrains.kotlin:kotlin-test-common")
-//    testImplementation("org.jetbrains.kotlin:kotlin-test-annotations-common")
 }
