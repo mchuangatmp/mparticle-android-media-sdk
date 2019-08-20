@@ -1,23 +1,29 @@
 package com.mparticle.events
 
-enum class MediaEventType(val type: Int) {
-    Play(23),
-    Pause(24),
-    SessionStart(30),
-    SessionEnd(31),
-    SeekStart(32),
-    SeekEnd(33),
-    BufferStart(34),
-    BufferEnd(35),
-    UpdatePlayheadPosition(36),
-    AdClick(37),
-    AdBreakStart(38),
-    AdBreakEnd(39),
-    AdStart(40),
-    AdEnd(41),
-    AdSkip(42),
-    SegmentStart(43),
-    SegmentEnd(44),
-    SegmentSkip(45),
-    UpdateQoS(46)
+import com.mparticle.BaseEvent
+
+enum class MediaEventType(private val messageType: String): BaseEvent.MessageType {
+    Play("play"),
+    Pause("pause"),
+    SessionStart("session_start"),
+    SessionEnd("session_end"),
+    ContentEnd("content_end"),
+    SeekStart("seek_start"),
+    SeekEnd("seek_end"),
+    BufferStart("buffer_start"),
+    BufferEnd("buffer_end"),
+    UpdatePlayheadPosition("playhead_position"),
+    AdClick("ad_click"),
+    AdBreakStart("ad_break_start"),
+    AdBreakEnd("ad_break_end"),
+    AdStart("ad_start"),
+    AdEnd("ad_end"),
+    AdSkip("ad_skip"),
+    SegmentStart("segment_start"),
+    SegmentEnd("segment_end"),
+    SegmentSkip("segment_skip"),
+    UpdateQoS("qos");
+
+    override fun getMessageType() = messageType
+
 }

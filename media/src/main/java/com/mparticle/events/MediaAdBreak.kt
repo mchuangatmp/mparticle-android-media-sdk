@@ -1,3 +1,8 @@
 package com.mparticle.events
 
-class MediaAdBreak(var tag: String, var duration: Long, var currentPlaybackTime: Long? = null)
+class MediaAdBreak {
+    var id: String? = null
+    var title: String? = null
+    var duration: Long? = null
+    var currentPlaybackTime: Long? = null
+}

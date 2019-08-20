@@ -1,6 +1,6 @@
 package com.mparticle.events
 
-class MediaType {
+class ContentType {
     companion object {
         const val VIDEO = "video"
         const val AUDIO = "audio"
