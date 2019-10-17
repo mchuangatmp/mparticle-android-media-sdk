@@ -1,8 +1,6 @@
 package com.mparticle.events
 
-class StreamType {
-    companion object {
-        const val LIVE_STEAM = "live_stream"
-        const val ON_DEMAND = "on_demand"
-    }
+object StreamType {
+    const val LIVE_STEAM = "LiveStream"
+    const val ON_DEMAND = "OnDemand"
 }

@@ -1,14 +1,17 @@
 package com.mparticle.events
 
 import com.mparticle.BaseEvent
+import com.mparticle.MPEvent
+import com.mparticle.MParticle
 import com.mparticle.MediaSession
 import org.json.JSONObject
 import java.util.*
+import kotlin.collections.HashMap
 
 
 open class MediaEvent(
     session: MediaSession,
-    val eventType: String = "Unknown",
+    val eventName: String = "Unknown",
     val timeStamp: Long = System.currentTimeMillis(),
     val id: String = UUID.randomUUID().toString()
 ): BaseEvent(Type.MEDIA) {
@@ -37,10 +40,68 @@ open class MediaEvent(
         }
         playheadPosition = session.currentPlayheadPosition
     }
+    
+    fun toMPEvent(): MPEvent {
+        val mediaAttributes = getSessionAttributes()
+        mediaAttributes.putAll(getEventAttributes())
+        return MPEvent.Builder(eventName, MParticle.EventType.Media)
+            .customAttributes(mediaAttributes)
+            .build()
+    }
+
+    internal fun getSessionAttributes(): MutableMap<String, String> {
+        val sessionAttributes = HashMap<String, String>()
+        sessionAttributes.putIfNotNull(MediaAttributeKeys.MEDIA_SESSION_ID, sessionId)
+
+        sessionAttributes.putIfNotNull(MediaAttributeKeys.PLAYHEAD_POSITION, playheadPosition)
+        sessionAttributes.putIfNotNull(MediaAttributeKeys.TITLE, mediaContent.name)
+        sessionAttributes.putIfNotNull(MediaAttributeKeys.CONTENT_ID, mediaContent.contentId)
+        sessionAttributes.putIfNotNull(MediaAttributeKeys.DURATION, mediaContent.duration)
+        sessionAttributes.putIfNotNull(MediaAttributeKeys.STREAM_TYPE, mediaContent.streamType)
+        sessionAttributes.putIfNotNull(MediaAttributeKeys.CONTENT_TYPE, mediaContent.contentType)
+        return sessionAttributes;
+    }
+
+    internal fun getEventAttributes(): MutableMap<String, String> {
+        val eventAttributes = HashMap<String, String>()
+
+        eventAttributes.putIfNotNull(MediaAttributeKeys.SEEK_POSITION, seekPosition)
+        eventAttributes.putIfNotNull(MediaAttributeKeys.BUFFER_DURATION, bufferDuration)
+        eventAttributes.putIfNotNull(MediaAttributeKeys.BUFFER_PERCENT, bufferPercent)
+        eventAttributes.putIfNotNull(MediaAttributeKeys.BUFFER_POSITION, bufferPosition)
+
+        qos?.also { qos ->
+            eventAttributes.putIfNotNull(MediaAttributeKeys.QOS_BITRATE, qos.bitRate)
+            eventAttributes.putIfNotNull(MediaAttributeKeys.QOS_DROPPED_FRAMES, qos.droppedFrames)
+            eventAttributes.putIfNotNull(MediaAttributeKeys.QOS_FRAMES_PER_SECOND, qos.fps)
+            eventAttributes.putIfNotNull(MediaAttributeKeys.QOS_STARTUP_TIME, qos.startupTime)
+        }
+        mediaAd?.also { mediaAd ->
+            eventAttributes.putIfNotNull(MediaAttributeKeys.AD_TITLE, mediaAd.title)
+            eventAttributes.putIfNotNull(MediaAttributeKeys.AD_ID, mediaAd.id)
+            eventAttributes.putIfNotNull(MediaAttributeKeys.AD_ADVERTISING_ID, mediaAd.advertiser)
+            eventAttributes.putIfNotNull(MediaAttributeKeys.AD_CAMPAIGN, mediaAd.campaign)
+            eventAttributes.putIfNotNull(MediaAttributeKeys.AD_CREATIVE, mediaAd.creative)
+            eventAttributes.putIfNotNull(MediaAttributeKeys.AD_SITE_ID, mediaAd.siteId)
+            eventAttributes.putIfNotNull(MediaAttributeKeys.AD_DURATION, mediaAd.duration)
+            eventAttributes.putIfNotNull(MediaAttributeKeys.AD_PLACEMENT, mediaAd.placement)
+        }
+        segment?.also { segment ->
+            eventAttributes.putIfNotNull(MediaAttributeKeys.SEGMENT_TITLE, segment.title)
+            eventAttributes.putIfNotNull(MediaAttributeKeys.SEGMENT_INDEX, segment.index)
+            eventAttributes.putIfNotNull(MediaAttributeKeys.SEGMENT_DURATION, segment.duration)
+        }
+        adBreak?.also { adBreak ->
+            eventAttributes.putIfNotNull(MediaAttributeKeys.AD_BREAK_TITLE, adBreak.title)
+            eventAttributes.putIfNotNull(MediaAttributeKeys.AD_BREAK_DURATION, adBreak.duration)
+            eventAttributes.putIfNotNull(MediaAttributeKeys.AD_BREAK_ID, adBreak.id)
+        }
+        return eventAttributes
+    }
 
     override fun toString(): String {
         val json = JSONObject()
-        json.put("type", eventType)
+        json.put("type", eventName)
         json.put("id", id)
         if (playheadPosition != null) {
             json.put("playhead position", playheadPosition!!)
@@ -84,8 +145,7 @@ open class MediaEvent(
         if (adBreak != null) {
             json.put("adBreak", JSONObject()
                 .put("title", adBreak?.title)
-                .put("duration", adBreak?.duration)
-                .put("current playback time", adBreak?.currentPlaybackTime))
+                .put("duration", adBreak?.duration))
         }
         json.put("Media Content", JSONObject()
             .put("name", mediaContent.name)
@@ -97,6 +157,12 @@ open class MediaEvent(
         json.put("session id", sessionId)
         json.put("timestamp", timeStamp)
         return json.toString()
+    }
+    
+    fun HashMap<String, String>.putIfNotNull(key: String, value: Any?) {
+        if (value != null) {
+            put(key, value.toString())
+        }
     }
 }
 

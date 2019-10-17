@@ -1,6 +1,6 @@
 package com.mparticle.events
 
-class MediaQoS() {
+class MediaQoS {
     var startupTime : Long? = null
     var droppedFrames: Int? = null
     var bitRate: Int? = null

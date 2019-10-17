@@ -26,5 +26,6 @@ dependencies {
     testImplementation("junit:junit:4.12")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
-    implementation("com.mparticle:android-core:5.12.0-SNAPSHOT")
+    implementation("com.mparticle:android-core:[5.11.3,)")
+
 }
