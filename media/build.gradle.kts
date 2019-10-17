@@ -22,8 +22,9 @@ repositories {
 
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
-    implementation("com.mparticle:android-core:5.10.2")
-
+    testImplementation(files("libs/test-utils.aar"))
     testImplementation("junit:junit:4.12")
+
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
+    implementation("com.mparticle:android-core:5.12.0-SNAPSHOT")
 }

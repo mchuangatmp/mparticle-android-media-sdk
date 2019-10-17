@@ -6,12 +6,14 @@ import org.json.JSONObject
 import java.util.*
 
 
-open class MediaEvent(val eventType: MediaEventType,
-                      session: MediaSession,
-                      val timeStamp: Long = System.currentTimeMillis(),
-                      val id: String = UUID.randomUUID().toString()): BaseEvent(eventType) {
+open class MediaEvent(
+    session: MediaSession,
+    val eventType: String = "Unknown",
+    val timeStamp: Long = System.currentTimeMillis(),
+    val id: String = UUID.randomUUID().toString()
+): BaseEvent(Type.MEDIA) {
 
-    var sessionId: String
+    var sessionId: String? = null
     var mediaContent: MediaContent
     var playheadPosition: Long?
 
@@ -38,7 +40,7 @@ open class MediaEvent(val eventType: MediaEventType,
 
     override fun toString(): String {
         val json = JSONObject()
-        json.put("type", eventType.name)
+        json.put("type", eventType)
         json.put("id", id)
         if (playheadPosition != null) {
             json.put("playhead position", playheadPosition!!)
@@ -81,7 +83,7 @@ open class MediaEvent(val eventType: MediaEventType,
         }
         if (adBreak != null) {
             json.put("adBreak", JSONObject()
-                .put("tag", adBreak?.title)
+                .put("title", adBreak?.title)
                 .put("duration", adBreak?.duration)
                 .put("current playback time", adBreak?.currentPlaybackTime))
         }

@@ -11,7 +11,7 @@ import com.mparticle.internal.MPUtility
 import java.util.*
 
 class MediaSession protected constructor(builder: Builder) {
-    var sessionId: String = ""
+    var sessionId: String? = null
         private set
     var mparticleInstance: MParticle?
 
@@ -26,7 +26,7 @@ class MediaSession protected constructor(builder: Builder) {
     var streamType: String
         private set
 
-    var currentPlayheadPosition: Long = 0
+    var currentPlayheadPosition: Long? = null
         private set
 
     init {
@@ -46,46 +46,46 @@ class MediaSession protected constructor(builder: Builder) {
 
     fun logMediaSessionStart() {
         sessionId = UUID.randomUUID().toString()
-        val mediaSessionEvent = MediaEvent(MediaEventType.SessionStart, this)
+        val mediaSessionEvent = MediaEvent(this, MediaEventName.SessionStart)
         logEvent(mediaSessionEvent)
     }
 
     fun logMediaSessionEnd() {
-        val mediaSessionEvent = MediaEvent(MediaEventType.SessionEnd, this)
+        val mediaSessionEvent = MediaEvent(this, MediaEventName.SessionEnd)
         logEvent(mediaSessionEvent)
     }
 
     fun logMediaContentEnd() {
-        val mediaSessionEvent = MediaEvent(MediaEventType.ContentEnd, this)
+        val mediaSessionEvent = MediaEvent(this, MediaEventName.ContentEnd)
         logEvent(mediaSessionEvent)
     }
 
     fun logPlay() {
-        val playEvent = MediaEvent(MediaEventType.Play, this)
+        val playEvent = MediaEvent(this, MediaEventName.Play)
         logEvent(playEvent)
     }
 
     fun logPause() {
-        val pauseEvent = MediaEvent(MediaEventType.Pause, this)
+        val pauseEvent = MediaEvent(this, MediaEventName.Pause)
         logEvent(pauseEvent)
     }
 
     fun logSeekStart(position: Long) {
-        val seekStartEvent = MediaEvent(MediaEventType.SeekStart, this).apply {
+        val seekStartEvent = MediaEvent(this, MediaEventName.SeekStart).apply {
             this.seekPosition = position
         }
         logEvent(seekStartEvent)
     }
 
     fun logSeekEnd(position: Long) {
-        val seekEndEvent = MediaEvent(MediaEventType.SeekEnd, this).apply {
+        val seekEndEvent = MediaEvent(this, MediaEventName.SeekEnd).apply {
             this.seekPosition = position
         }
         logEvent(seekEndEvent)
     }
 
     fun logBufferStart(duration: Long, bufferPercent: Double, position: Long) {
-        val bufferStart = MediaEvent(MediaEventType.BufferStart, this).apply {
+        val bufferStart = MediaEvent(this, MediaEventName.BufferStart).apply {
             this.bufferDuration = duration
             this.bufferPosition = position
             this.bufferPercent = bufferPercent
@@ -94,7 +94,7 @@ class MediaSession protected constructor(builder: Builder) {
     }
 
     fun logBufferEnd(duration: Long, bufferPercent: Double, position: Long) {
-        val bufferEnd = MediaEvent(MediaEventType.BufferEnd, this).apply {
+        val bufferEnd = MediaEvent(this, MediaEventName.BufferEnd).apply {
             this.bufferDuration = duration
             this.bufferPercent = bufferPercent
             this.bufferPosition = position
@@ -110,14 +110,14 @@ class MediaSession protected constructor(builder: Builder) {
     }
 
     fun logAdBreakStart(adBreak: MediaAdBreak) {
-        val adBreakEvent = MediaEvent(MediaEventType.AdBreakStart, this).apply {
+        val adBreakEvent = MediaEvent(this, MediaEventName.AdBreakStart).apply {
             this.adBreak = adBreak
         }
         logEvent(adBreakEvent)
     }
 
     fun logAdBreakEnd() {
-        val adBreakEvent = MediaEvent(MediaEventType.AdBreakEnd, this)
+        val adBreakEvent = MediaEvent(this, MediaEventName.AdBreakEnd)
         logEvent(adBreakEvent)
     }
 
@@ -129,19 +129,19 @@ class MediaSession protected constructor(builder: Builder) {
     }
 
     fun logAdStart(ad: MediaAd) {
-        val adStartEvent = MediaEvent(MediaEventType.AdStart, this).apply {
+        val adStartEvent = MediaEvent(this, MediaEventName.AdStart).apply {
             mediaAd = ad
         }
         logEvent(adStartEvent)
     }
 
     fun logAdEnd() {
-        val adEndEvent = MediaEvent(MediaEventType.AdEnd, this)
+        val adEndEvent = MediaEvent(this, MediaEventName.AdEnd)
         logEvent(adEndEvent)
     }
 
     fun logAdSkip() {
-        val adSkipEvent = MediaEvent(MediaEventType.AdSkip, this)
+        val adSkipEvent = MediaEvent(this, MediaEventName.AdSkip)
         logEvent(adSkipEvent)
     }
 
@@ -153,25 +153,25 @@ class MediaSession protected constructor(builder: Builder) {
     }
 
     fun logSegmentStart(segment: MediaSegment) {
-        val segmentStartEvent = MediaEvent(MediaEventType.SegmentStart, this).apply {
+        val segmentStartEvent = MediaEvent(this, MediaEventName.SegmentStart).apply {
             this.segment = segment
         }
         logEvent(segmentStartEvent)
     }
 
     fun logSegmentSkip() {
-        val segmentSkipEvent = MediaEvent(MediaEventType.SegmentSkip, this)
+        val segmentSkipEvent = MediaEvent(this, MediaEventName.SegmentSkip)
         logEvent(segmentSkipEvent)
     }
 
     fun logSegmentEnd() {
-        val segmentEndEvent = MediaEvent(MediaEventType.SegmentEnd, this)
+        val segmentEndEvent = MediaEvent(this, MediaEventName.SegmentEnd)
         logEvent(segmentEndEvent)
     }
 
     fun logPlayheadPosition(playheadPosition: Long) {
         currentPlayheadPosition = playheadPosition
-        val playheadEvent = MediaEvent(MediaEventType.UpdatePlayheadPosition, this).apply {
+        val playheadEvent = MediaEvent(this, MediaEventName.UpdatePlayheadPosition).apply {
             this.playheadPosition = playheadPosition
         }
         logEvent(playheadEvent)
@@ -185,7 +185,7 @@ class MediaSession protected constructor(builder: Builder) {
     }
 
     fun logQos(qos: MediaQoS) {
-        val qosEvent = MediaEvent(MediaEventType.UpdateQoS, this).apply {
+        val qosEvent = MediaEvent(this, MediaEventName.UpdateQoS).apply {
             this.qos = qos
         }
         logEvent(qosEvent)
@@ -218,10 +218,20 @@ class MediaSession protected constructor(builder: Builder) {
 
     class Builder internal constructor(var mparticle: MParticle? = null) {
         var title: String? = null
+            @JvmSynthetic
+            set
         var mediaContentId: String? = null
+            @JvmSynthetic
+            set
         var duration: Long? = null
+            @JvmSynthetic
+            set
         var streamType: String? = null
+            @JvmSynthetic
+            set
         var contentType: String? = null
+            @JvmSynthetic
+            set
 
         fun title(title: String): Builder {
             this.title = title
