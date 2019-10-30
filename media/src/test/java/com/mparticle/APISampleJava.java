@@ -1,10 +1,9 @@
 package com.mparticle;
 
-import com.mparticle.events.ContentType;
-import com.mparticle.events.MediaEvent;
-import com.mparticle.events.StreamType;
-
-import org.jetbrains.annotations.NotNull;
+import com.mparticle.media.MediaSession;
+import com.mparticle.media.events.ContentType;
+import com.mparticle.media.events.MediaEvent;
+import com.mparticle.media.events.StreamType;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;

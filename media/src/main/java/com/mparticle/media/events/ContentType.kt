@@ -1,4 +1,4 @@
-package com.mparticle.events
+package com.mparticle.media.events
 
 object ContentType {
     const val VIDEO = "Video"

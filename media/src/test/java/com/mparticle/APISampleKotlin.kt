@@ -1,8 +1,8 @@
 package testpckg
 
 import com.mparticle.MParticle
-import com.mparticle.MediaSession
-import com.mparticle.events.*
+import com.mparticle.media.MediaSession
+import com.mparticle.media.events.*
 
 
 fun main() {

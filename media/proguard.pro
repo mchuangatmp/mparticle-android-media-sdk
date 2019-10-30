@@ -80,8 +80,8 @@
 -keepparameternames
 -renamesourcefileattribute SourceFile
 -keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
--keep class com.mparticle.MediaSession { *; }
--keep class com.mparticle.events.* { *; }
+-keep class com.mparticle.media.MediaSession { *; }
+-keep class com.mparticle.media.events.* { *; }
 
 -keepclassmembernames class * {
     java.lang.Class class$(java.lang.String);

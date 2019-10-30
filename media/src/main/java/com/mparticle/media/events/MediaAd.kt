@@ -1,4 +1,4 @@
-package com.mparticle.events
+package com.mparticle.media.events
 
 class MediaAd() {
     var title: String? = null

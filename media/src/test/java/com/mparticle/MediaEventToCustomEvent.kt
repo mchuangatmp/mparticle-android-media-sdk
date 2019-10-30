@@ -1,6 +1,7 @@
 package com.mparticle
 
-import com.mparticle.events.*
+import com.mparticle.media.MediaSession
+import com.mparticle.media.events.*
 import com.mparticle.testutils.RandomUtils
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertNotNull

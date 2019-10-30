@@ -1,4 +1,4 @@
-package com.mparticle.events
+package com.mparticle.media.events
 
 class MediaAdBreak {
     var id: String? = null

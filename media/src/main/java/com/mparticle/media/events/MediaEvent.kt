@@ -1,9 +1,9 @@
-package com.mparticle.events
+package com.mparticle.media.events
 
 import com.mparticle.BaseEvent
 import com.mparticle.MPEvent
 import com.mparticle.MParticle
-import com.mparticle.MediaSession
+import com.mparticle.media.MediaSession
 import org.json.JSONObject
 import java.util.*
 import kotlin.collections.HashMap

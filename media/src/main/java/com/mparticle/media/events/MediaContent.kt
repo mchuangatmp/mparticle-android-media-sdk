@@ -1,4 +1,4 @@
-package com.mparticle.events
+package com.mparticle.media.events
 
 class MediaContent {
     var name: String? = null

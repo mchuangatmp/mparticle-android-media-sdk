@@ -1,8 +1,9 @@
-package com.mparticle
+package com.mparticle.media
 
-import com.mparticle.events.*
-import com.mparticle.internal.Logger
-import com.mparticle.internal.MPUtility
+import com.mparticle.MPEvent
+import com.mparticle.MParticle
+import com.mparticle.media.events.*
+import com.mparticle.media.internal.Logger
 import java.util.*
 
 class MediaSession protected constructor(builder: Builder) {
@@ -312,12 +313,7 @@ class MediaSession protected constructor(builder: Builder) {
 
 private fun String?.require(variableName: String): String {
     if (this == null) {
-        val message = "\"$variableName\" must not be null"
-        if (MPUtility.isDevEnv()) {
-            throw RuntimeException(message)
-        } else {
-            Logger.error(message)
-        }
+        Logger.error("\"$variableName\" should not be null")
     }
     return this ?: ""
 }
