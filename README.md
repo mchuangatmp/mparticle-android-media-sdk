@@ -18,7 +18,7 @@ Please be aware that this SDK is built as an extension of and requires the use o
 
 ## Include and Initialize the SDK
 
-Below summarizes the major steps to get the Android Media SDK up and running. In addition to the below, we have built a sample app that provides a more in depth look at how to send Media Events to Adobe's Heartbeat Kit. See that [sample app here](https://github.com/mParticle/mparticle-media-samples)
+Below summarizes the major steps to get the Android Media SDK up and running. In addition to the below, we have built a sample app that provides a more in depth look at how to send `MediaEvent`s to Adobe's Heartbeat Kit. See that [sample app here](https://github.com/mParticle/mparticle-media-samples)
 
 You can grab the Core SDK via Maven Central. Please see the badge above and follow the [releases page](https://github.com/mParticle/mparticle-android-sdk/releases) to stay up to date with the latest version.
 
@@ -33,7 +33,8 @@ dependencies {
 
 ### Code Samples
 
-#### Kotlin
+MediaSession basics
+
 ```kotlin
     //initialize the core SDK
     val options = MParticleOptions.builder(context)
@@ -56,34 +57,46 @@ dependencies {
     //log events!
     mediaSession.logPlay()
     mediaSession.logPause()
-
 ```
 
-#### Java
-```java
-    //initialize the core SDK
-    MParticleOptions options = MParticleOptions.builder(context)
-            .credentials("key", "secret")
-            .build();
-    MParticle.start(options);
-    
-    //initialize a MediaSession
-    MediaSession mediaSession = MediaSession.builder()
-            .duration(123L)
-            .title("Media Title ")
-            .mediaContentId("abc123")
-            .contentType(ContentType.AUDIO)
-            .streamType(StreamType.LIVE_STEAM)
-            .build();
-    
-    //start the MediaSession
-    mediaSession.logMediaSessionStart();
-    
-    //log events!
-    mediaSession.logPlay();
-    mediaSession.logPause();
+#### Logging `MediaEvent`s as Custom Events (`MPEvent`) to the MParticle Server
 
+1) Automatically Log all `MediaEvent`s created by the `MediaSession`, as `MPEvent`s
+
+> note: "UpdatePlayheadPosition" `MediaEvent`s will never be automatically logged to the MParticle Server
+
+```kotlin
+val mediaSession = MediaSession.builder {
+    title = "Media Title"
+    mediaContentId = "123"
+    duration = 1000
+    streamType = StreamType.LIVE_STEAM
+    contentType = ContentType.VIDEO
+    
+    logMPEvents = true
+}
 ```
+
+2) Create a Custom Event(`MPEvent`) within the context of a MediaSession.
+
+```kotlin
+val mpEvent = mediaSession.buildMPEvent("Milestone", mapOf(
+    "type" to "95%"
+  ))
+MParticle.getInstance()?.logEvent(mpEvent)
+```
+
+3) Log select `MediaEvent`s as Custom Events(`MPEvents`). The example flattens and logs `MediaEvent` created by `MediaSession.logPlay()` calls
+```kotlin
+mediaSession.mediaEventListener = { mediaEvent ->
+    if (mediaEvent.eventName == MediaEventName.PLAY) {
+        val mpEvent = mediaEvent.toMPEvent()
+        MParticle.getInstance()?.logEvent(mpEvent)
+    }
+}
+```
+
+
 
 # Contibution Guidelines
 

@@ -21,18 +21,21 @@ fun main() {
     }
 
     //log a custom event, type "Milestone" with attributes ["type", "95%"]
-    val mpEvent = mediaSession.buildMPEvent("Milestone", mapOf("type" to "95%"))
+    val mpEvent = mediaSession.buildMPEvent("Milestone", mapOf(
+        "type" to "95%"
+    ))
     MParticle.getInstance()?.logEvent(mpEvent)
 
 
     //listen for Media events type PLAY, PAUSE, CONTENT_END
     mediaSession.mediaEventListener = { mediaEvent ->
-        when (mediaEvent.eventName) {
-            MediaEventName.PLAY, MediaEventName.PAUSE, MediaEventName.CONTENT_END -> {
-                //do something with these events
-            }
+        if (mediaEvent.eventName == MediaEventName.PLAY) {
+            val mpEvent = mediaEvent.toMPEvent()
+            MParticle.getInstance()?.logEvent(mpEvent)
         }
     }
+
+
 
 
     //log some MediaEvents
