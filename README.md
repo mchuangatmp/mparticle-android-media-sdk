@@ -127,6 +127,11 @@ At mParticle, we are proud of our code and like to keep things open source. If y
 
 <support@mparticle.com>
 
+* [SDK Documentation](https://docs.mparticle.com/developers/sdk/android/media/)
+* [Javadocs](http://docs.mparticle.com/developers/sdk/android/javadocs/index.html)
+
+
 ## License
 
 The mParticle Android SDK is available under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0). See the LICENSE file for more info.
+

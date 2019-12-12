@@ -41,3 +41,11 @@ configure<SonarQubeExtension> {
         property("sonar.prjectKey", "Android")
     }
 }
+
+tasks.create("mediaSdkJavadocs", Javadoc::class.java) {
+    source(android.sourceSets["main"].java.srcDirs, "build/generated/source/buildConfig/release/")
+    this.classpath = project.files(android.bootClasspath.joinToString(File.pathSeparator))
+    title = "mParticle Android Media SDK API Reference"
+    setFailOnError(false)
+    (getOptions() as? StandardJavadocDocletOptions)?.noTimestamp(true)
+}

@@ -51,32 +51,53 @@ class MediaSession protected constructor(builder: Builder) {
         logMediaEvents = builder.logMediaEvents
     }
 
+    /**
+     * Start the MediaSession. This method should be called before logging  any other events against this
+     * MediaSession instance
+     */
     fun logMediaSessionStart(options: Options? = null) {
         sessionId = UUID.randomUUID().toString()
         val mediaSessionEvent = MediaEvent(this, MediaEventName.SESSION_START, options = options)
         logEvent(mediaSessionEvent)
     }
 
+    /**
+     * End the MediaSession
+     */
     fun logMediaSessionEnd(options: Options? = null) {
         val mediaSessionEvent = MediaEvent(this, MediaEventName.SESSION_END, options = options)
         logEvent(mediaSessionEvent)
     }
 
+    /**
+     * Indicate that the content for the MediaSession has ended. This will NOT end the MediaSession
+     */
     fun logMediaContentEnd(options: Options? = null) {
         val mediaSessionEvent = MediaEvent(this, MediaEventName.CONTENT_END, options = options)
         logEvent(mediaSessionEvent)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.PLAY}
+     */
     fun logPlay(options: Options? = null) {
         val playEvent = MediaEvent(this, MediaEventName.PLAY, options = options)
         logEvent(playEvent)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.PAUSE}
+     */
     fun logPause(options: Options? = null) {
         val pauseEvent = MediaEvent(this, MediaEventName.PAUSE, options = options)
         logEvent(pauseEvent)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.SEEK_START}
+     *
+     * @param position the position, in milliseconds, where the seek event started
+     */
     fun logSeekStart(position: Long, options: Options? = null) {
         val seekStartEvent = MediaEvent(this, MediaEventName.SEEK_START, options = options).apply {
             this.seekPosition = position
@@ -84,6 +105,11 @@ class MediaSession protected constructor(builder: Builder) {
         logEvent(seekStartEvent)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.SEEK_END}
+     *
+     * @param position the position, in milliseconds, where the seek event ended
+     */
     fun logSeekEnd(position: Long, options: Options? = null) {
         val seekEndEvent = MediaEvent(this, MediaEventName.SEEK_END, options = options).apply {
             this.seekPosition = position
@@ -91,6 +117,11 @@ class MediaSession protected constructor(builder: Builder) {
         logEvent(seekEndEvent)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.BUFFER_START}
+     *
+     * @param position the position, in milliseconds, where the buffer event started
+     */
     fun logBufferStart(duration: Long, bufferPercent: Double, position: Long, options: Options? = null) {
         val bufferStart = MediaEvent(this, MediaEventName.BUFFER_START, options = options).apply {
             this.bufferDuration = duration
@@ -100,6 +131,11 @@ class MediaSession protected constructor(builder: Builder) {
         logEvent(bufferStart)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.BUFFER_END}
+     *
+     * @param position the position, in milliseconds, where the buffer event ended
+     */
     fun logBufferEnd(duration: Long, bufferPercent: Double, position: Long, options: Options? = null) {
         val bufferEnd = MediaEvent(this, MediaEventName.BUFFER_END, options = options).apply {
             this.bufferDuration = duration
@@ -109,6 +145,11 @@ class MediaSession protected constructor(builder: Builder) {
         logEvent(bufferEnd)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.AD_BREAK_START}
+     *
+     * @param builder a receiver type closure to build a MediaAdBreak instance
+     */
     @JvmSynthetic
     fun logAdBreakStart(builder: MediaAdBreak.() -> Unit) {
         logAdBreakStart(null, builder)
@@ -121,6 +162,11 @@ class MediaSession protected constructor(builder: Builder) {
         logAdBreakStart(mediaAdBreak, options)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.AD_BREAK_START}
+     *
+     * @param adBreak the {@link MediaAdBreak} instance
+     */
     fun logAdBreakStart(adBreak: MediaAdBreak, options: Options? = null) {
         val adBreakEvent = MediaEvent(this, MediaEventName.AD_BREAK_START, options = options).apply {
             this.adBreak = adBreak
@@ -128,11 +174,19 @@ class MediaSession protected constructor(builder: Builder) {
         logEvent(adBreakEvent)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.AD_BREAK_END}
+     */
     fun logAdBreakEnd(options: Options? = null) {
         val adBreakEvent = MediaEvent(this, MediaEventName.AD_BREAK_END, options = options)
         logEvent(adBreakEvent)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.AD_START}
+     *
+     * @param builder a receiver type closure to build a MediaAd instance
+     */
     @JvmSynthetic
     fun logAdStart(builder: MediaAd.() -> Unit) {
         logAdStart(null, builder)
@@ -144,6 +198,11 @@ class MediaSession protected constructor(builder: Builder) {
         logAdStart(mediaAd, options)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.AD_START}
+     *
+     * @param ad the {@link MediaAd} instance
+     */
     fun logAdStart(ad: MediaAd, options: Options? = null) {
         val adStartEvent = MediaEvent(this, MediaEventName.AD_START, options = options).apply {
             mediaAd = ad
@@ -151,16 +210,27 @@ class MediaSession protected constructor(builder: Builder) {
         logEvent(adStartEvent)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.AD_END}
+     */
     fun logAdEnd(options: Options? = null) {
         val adEndEvent = MediaEvent(this, MediaEventName.AD_END, options = options)
         logEvent(adEndEvent)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.AD_SKIP}
+     */
     fun logAdSkip(options: Options? = null) {
         val adSkipEvent = MediaEvent(this, MediaEventName.AD_SKIP, options = options)
         logEvent(adSkipEvent)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.SEGMENT_START}
+     *
+     * @param builder a receiver type closure to build a MediaSegment instance
+     */
     @JvmSynthetic
     fun logSegmentStart(builder: MediaSegment.() -> Unit) {
         logSegmentStart(null, builder)
@@ -172,6 +242,11 @@ class MediaSession protected constructor(builder: Builder) {
         logSegmentStart(mediaSegment, options)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.SEGMENT_START}
+     *
+     * @param ad the {@link MediaSegment} instance
+     */
     fun logSegmentStart(segment: MediaSegment, options: Options? = null) {
         val segmentStartEvent = MediaEvent(this, MediaEventName.SEGMENT_START, options = options).apply {
             this.segment = segment
@@ -179,16 +254,26 @@ class MediaSession protected constructor(builder: Builder) {
         logEvent(segmentStartEvent)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.SEGMENT_SKIP}
+     */
     fun logSegmentSkip(options: Options? = null) {
         val segmentSkipEvent = MediaEvent(this, MediaEventName.SEGMENT_SKIP, options = options)
         logEvent(segmentSkipEvent)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.SEGMENT_END}
+     */
     fun logSegmentEnd(options: Options? = null) {
         val segmentEndEvent = MediaEvent(this, MediaEventName.SEGMENT_END, options = options)
         logEvent(segmentEndEvent)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.UPDATE_PLAYHEAD_POSITION}. This will also
+     * update the internal currentPlayheadPosition state.
+     */
     fun logPlayheadPosition(playheadPosition: Long) {
         currentPlayheadPosition = playheadPosition
         val playheadEvent = MediaEvent(this, MediaEventName.UPDATE_PLAYHEAD_POSITION).apply {
@@ -197,6 +282,12 @@ class MediaSession protected constructor(builder: Builder) {
         logEvent(playheadEvent)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.UPDATE_QOS}. The QOS object will be treated as
+     * stateless, and some kits may replace `null` values with the default primitive
+     *
+     * @param builder a receiver type closure to build a MediaQoS instance
+     */
     @JvmSynthetic
     fun logQos(builder: MediaQoS.() -> Unit) {
         logQos(null, builder)
@@ -217,7 +308,6 @@ class MediaSession protected constructor(builder: Builder) {
      *
      * @param qos the {@link MediaQoS} instance
      */
-
     fun logQos(qos: MediaQoS, options: Options? = null) {
         this.sessionQoS = MediaQoS(
             startupTime = qos.startupTime ?: this.sessionQoS.startupTime,
@@ -231,6 +321,11 @@ class MediaSession protected constructor(builder: Builder) {
         logEvent(qosEvent)
     }
 
+    /**
+     * Create a MPEvent in the current MediaSession context. The {@link BaseEvent#customAttributes()}
+     * will be populated with the relivant {@link MediaContent} fields which belong to the MediaSession
+     * instance. This includes "title", "mediaContentId", "duration", "streamType" and "contentType"
+     */
     fun buildMPEvent(eventName: String, customAttributes: Map<String, String>): MPEvent {
         val eventAttributes = attributes
         eventAttributes.putAll(customAttributes)
@@ -239,6 +334,10 @@ class MediaSession protected constructor(builder: Builder) {
             .build()
     }
 
+    /**
+     * Register a MediaEventListener instance which will receive a callback everytime a {@link MediaEvent}
+     * is generated. The callback will occur before the {@link MediaEvent} is logged in the Core SDK
+     */
     fun setMediaEventListener(listener: MediaEventListener) {
         mediaEventListener = { mediaEvent -> listener.onLogMediaEvent(mediaEvent)}
     }
@@ -304,41 +403,67 @@ class MediaSession protected constructor(builder: Builder) {
             @JvmSynthetic
             set
 
+        /**
+         * Set the Title of the {@link MediaContent} for this {@link MediaSession}
+         */
         fun title(title: String): Builder {
             this.title = title
             return this
         }
 
+        /**
+         * Set the MediaContentId of the {@link MediaContent} for this {@link MediaSession}
+         */
         fun mediaContentId(mediaContentId: String): Builder {
             this.mediaContentId = mediaContentId
             return this
         }
 
+        /**
+         * Set the Duration of the {@link MediaContent} for this {@link MediaSession}
+         */
         fun duration(duration: Long): Builder {
             this.duration = duration
             return this
         }
 
+        /**
+         * Set the StreamType of the {@link MediaContent} for this {@link MediaSession}
+         */
         fun streamType(streamType: String): Builder {
             this.streamType = streamType
             return this
         }
 
+        /**
+         * Set the ContentType of the {@link MediaContent} for this {@link MediaSession}
+         */
         fun contentType(contentType: String): Builder {
             this.contentType = contentType
             return this
         }
 
+        /**
+         * Indicate whether this {@link MediaSession} should automatically log generated {@link MediaEvent}
+         * instances to Kits
+         */
         fun logMediaEvents(shouldLog: Boolean): Builder {
             this.logMediaEvents = shouldLog
             return this;
         }
 
+        /**
+         * Indicate whether this {@link MediaSession} should automatically log generated {@link MPEvent}
+         * instances and to the MParticle Server
+         */
         fun logMPEvents(shouldLog: Boolean): Builder {
             this.logMPEvents = shouldLog
             return this
         }
 
+        /**
+         * Build to a {@link MediaSession}
+         */
         fun build(): MediaSession {
             return MediaSession(this)
         }
