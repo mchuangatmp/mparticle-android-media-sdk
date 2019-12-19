@@ -1,5 +1,12 @@
 package com.mparticle.media.events
 
+/**
+ * This is a series of Reserved constants used *internally* in the generation of MediaEvents.
+ * The purpose of surfacing these values is solely for querying {@link com.mparticle.MPEvent} instances generated from
+ * {@link com.mparticle.media.events.MediaEvent}s. These values should *not* be added to {@link com.mparticle.media.events.MediaEvent}
+ * via {@link com.mparticle.media.events.Options} arguments, for those customAttributes, you should
+ * use either free form Strings, or key values found in {@link com.mparticle.media.events.MediaAttributeKeys}
+ */
 object MediaAttributeKeys {
 
     const val MEDIA_SESSION_ID = "media_session_id"

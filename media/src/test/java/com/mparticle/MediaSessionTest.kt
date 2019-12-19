@@ -86,14 +86,11 @@ class MediaSessionTest  {
             mparticle.loggedEvents.first { it is MediaEvent }
             mparticle.loggedEvents.clear()
         }
-
-
     }
 
     @Test
     fun testAllMediaEventsHaveMediaContent() {
         val mparticle = MockMParticle()
-
 
         val mediaSession = MediaSession.builder(mparticle) {
             title = "hello"
@@ -102,8 +99,6 @@ class MediaSessionTest  {
             streamType = StreamType.LIVE_STEAM
             contentType = ContentType.VIDEO
         }
-
-
 
         afterLogApiInvoked (mediaSession) { method ->
             assertEquals(method.toString(), 1, mparticle.loggedEvents.size)
@@ -192,6 +187,7 @@ class MediaSessionTest  {
         assertEquals(0, mparticle.loggedEvents.size)
     }
 
+    @Test
     fun attributesTest() {
         val mediaSession = MediaSession.builder {
             contentType = randomUtils.getAlphaNumericString(50)
@@ -213,22 +209,64 @@ class MediaSessionTest  {
         }
         testSessionMediaContentAttributes()
 
+        mediaSession.logMediaSessionStart()
+        attributes = mediaSession.attributes
+        assertEquals(6, attributes.size)
+        assertNotNull(attributes[MediaAttributeKeys.MEDIA_SESSION_ID])
+
         mediaSession.logPlayheadPosition(10L)
 
         attributes = mediaSession.attributes
-        assertEquals(6, attributes.size)
+        assertEquals(7, attributes.size)
         assertEquals(10.toString(), attributes[MediaAttributeKeys.PLAYHEAD_POSITION])
 
         //make sure no other Media Sessions are started
         afterLogApiInvoked(mediaSession) {}
 
-        attributes = mediaSession.attributes
-        assertEquals(6, attributes.size)
-        assertNotNull(attributes[MediaAttributeKeys.PLAYHEAD_POSITION])
 
+        attributes = mediaSession.attributes
+        assertEquals(7, attributes.size)
+        assertNotNull(attributes[MediaAttributeKeys.PLAYHEAD_POSITION])
+        assertNotNull(attributes[MediaAttributeKeys.MEDIA_SESSION_ID])
     }
 
-    fun afterLogApiInvoked(mediaSession: MediaSession, onEvent: (Method) -> Unit) {
+    /**
+     * test to make sure that Option's customAttributes and currentPlayPosition are accepted for each "log" method,
+     * and applied uniformly
+     */
+    @Test
+    fun optionsMPEventTest() {
+        val mparticle = MockMParticle()
+
+        val mediaSession = MediaSession.builder(mparticle) {
+            contentType = randomUtils.getAlphaNumericString(50)
+            streamType = randomUtils.getAlphaNumericString(50)
+            duration = random.nextLong().absoluteValue
+            mediaContentId = randomUtils.getAlphaNumericString(50)
+            title = randomUtils.getAlphaNumericString(50)
+        }
+        val options = Options().apply {
+            currentPlayheadPosition = random.nextLong()
+            customAttributes = mapOf(
+                "testKey1" to "testValue1",
+                "testKey2" to "testValue2")
+        }
+        afterLogApiInvoked(mediaSession, options) {
+            if (it.name != "logPlayheadPosition") {
+                assertEquals(it.toString(), 1, mparticle.loggedEvents.size)
+                val event = mparticle.loggedEvents[0] as MediaEvent
+                assertTrue(it.toString(), event.customAttributes!!.containsKey("testKey1"))
+                assertTrue(it.toString(), event.customAttributes?.get("testKey1") == "testValue1")
+                assertTrue(it.toString(), event.customAttributes!!.containsKey("testKey2"))
+                assertTrue(it.toString(), event.customAttributes?.get("testKey2") == "testValue2")
+
+                assertEquals(options.currentPlayheadPosition, mediaSession.currentPlayheadPosition)
+            }
+                mparticle.loggedEvents.clear()
+        }
+    }
+
+    fun afterLogApiInvoked(mediaSession: MediaSession, options: Options? = null, onEvent: (Method) -> Unit) {
         val methods = ArrayList<Method>()
         for (method in MediaSession::class.java.methods) {
             if (method.name != "logCustomEvent" && method.name.startsWith("log") && !method.name.endsWith("\$default")) {
@@ -259,6 +297,8 @@ class MediaSessionTest  {
                     arguments[i] = MediaSegment()
                 } else if (type == MediaQoS::class.java) {
                     arguments[i] = MediaQoS()
+                } else if (type == Options::class.java) {
+                    arguments[i] = options
                 } else {
                     throw RuntimeException("unknown type: " + type.name + "\nmethod: " + method.toString())
                 }

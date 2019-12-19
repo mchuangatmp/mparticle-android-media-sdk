@@ -13,7 +13,8 @@ open class MediaEvent(
     session: MediaSession,
     val eventName: String = "Unknown",
     val timeStamp: Long = System.currentTimeMillis(),
-    val id: String = UUID.randomUUID().toString()
+    val id: String = UUID.randomUUID().toString(),
+    val options: Options? = null
 ): BaseEvent(Type.MEDIA) {
 
     var sessionId: String? = null
@@ -39,11 +40,21 @@ open class MediaEvent(
             streamType = session.streamType
         }
         playheadPosition = session.currentPlayheadPosition
+        if (options != null) {
+            if (options.currentPlayheadPosition != null) {
+                playheadPosition = options.currentPlayheadPosition
+                session.currentPlayheadPosition = options.currentPlayheadPosition
+            }
+            if (!options.customAttributes.isEmpty()) {
+                customAttributes = HashMap(options.customAttributes)
+            }
+        }
     }
     
     fun toMPEvent(): MPEvent {
         val mediaAttributes = getSessionAttributes()
         mediaAttributes.putAll(getEventAttributes())
+        mediaAttributes.putAll(customAttributes?: mapOf())
         return MPEvent.Builder(eventName, MParticle.EventType.Media)
             .customAttributes(mediaAttributes)
             .build()

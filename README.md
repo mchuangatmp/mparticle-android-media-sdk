@@ -33,7 +33,7 @@ dependencies {
 
 ### Code Samples
 
-MediaSession basics
+Starting a MediaSession and logging events. The `MediaSession` fields `title`, `mediaContentId`, `duration`, `streamType`, and `contentType` are all required fields. We reccomend you use the constants defined in `StreamType` and `ContentType` for the `streamType` and `contentType` fields respectively, but free formed Strings are accepted if these constants don't accurately describe your Media
 
 ```kotlin
     //initialize the core SDK
@@ -57,6 +57,27 @@ MediaSession basics
     //log events!
     mediaSession.logPlay()
     mediaSession.logPause()
+```
+
+Updating playhead position while logging an event
+
+```kotlin
+    val options = Options().apply {
+        currentPlayheadPosition = 120000
+    }
+
+    mediaSession.logPlay(options)
+```
+
+Including customAttributes in an event. Common customAttribute keys are available as constants in `OptionsAttributeKeys`, but they may also be free formed Strings
+
+```kotlin
+    options = Options().apply{
+        "isFullScreen" to true,
+        OptionsAttributeKeys.CONTENT_EPISODE to "episode1",
+        OptionsAttributeKeys.PLAYER_NAME to "JWPlayer"
+    }
+    mediaSession.logPlay(options)
 ```
 
 #### Logging `MediaEvent`s as Custom Events (`MPEvent`) to the MParticle Server

@@ -20,7 +20,7 @@ fun main() {
         logMPEvents = true
     }
 
-    //log a custom event, type "Milestone" with attributes ["type", "95%"]
+    //log a custom event, type "Milestone" with customAttributes ["type", "95%"]
     val mpEvent = mediaSession.buildMPEvent("Milestone", mapOf(
         "type" to "95%"
     ))
@@ -34,6 +34,12 @@ fun main() {
             MParticle.getInstance()?.logEvent(mpEvent)
         }
     }
+
+    val options = Options().apply {
+        currentPlayheadPosition = 120000
+    }
+
+    mediaSession.logPlay(options)
 
 
 
