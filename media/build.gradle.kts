@@ -28,6 +28,7 @@ repositories {
 
 dependencies {
     testImplementation(files("libs/test-utils.aar"))
+    testImplementation(files("libs/java-json.jar"))
     testImplementation("junit:junit:4.12")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-common")

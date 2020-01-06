@@ -266,7 +266,74 @@ class MediaSessionTest  {
         }
     }
 
-    fun afterLogApiInvoked(mediaSession: MediaSession, options: Options? = null, onEvent: (Method) -> Unit) {
+    @Test
+    fun qosTest() {
+        val mparticle = MockMParticle()
+        val mediaSession = MediaSession.builder(mparticle) {
+            title = "hello"
+            mediaContentId ="123"
+            duration =1000
+            streamType = StreamType.LIVE_STEAM
+            contentType = ContentType.VIDEO
+
+            logMediaEvents = random.nextBoolean()
+            logMPEvents = random.nextBoolean()
+        }
+
+        var qos: MediaQoS? = null
+        mediaSession.mediaEventListener = { qos = it.qos }
+
+        //test empty QoS, should remain all null
+        mediaSession.logQos { }
+
+        assertNotNull(qos)
+        assertNull(qos?.startupTime)
+        assertNull(qos?.bitRate)
+        assertNull(qos?.fps)
+        assertNull(qos?.droppedFrames)
+        qos = null
+
+        //test single QoS value, all others should remain null since they've never been set
+        val singleTestQos = MediaQoS(fps = 5)
+        mediaSession.logQos(singleTestQos)
+        assertNotNull(qos)
+        assertNull(qos?.startupTime)
+        assertNull(qos?.bitRate)
+        assertEquals(qos?.fps, singleTestQos.fps)
+        assertNull(qos?.droppedFrames)
+
+        //test update whole object, overwrite everything
+        val fullTestQos = MediaQoS(startupTime = 1, bitRate = 2, fps = 3, droppedFrames = 4)
+        mediaSession.logQos(fullTestQos)
+
+        assertNotNull(qos)
+        assertEquals(qos?.startupTime, fullTestQos.startupTime)
+        assertEquals(qos?.bitRate, fullTestQos.bitRate)
+        assertEquals(qos?.fps, fullTestQos.fps)
+        assertEquals(qos?.droppedFrames, fullTestQos.droppedFrames)
+        qos = null
+
+        //test empty object when all fields are already set, should send all existing values
+        mediaSession.logQos { }
+
+        assertNotNull(qos)
+        assertEquals(qos?.startupTime, fullTestQos.startupTime)
+        assertEquals(qos?.bitRate, fullTestQos.bitRate)
+        assertEquals(qos?.fps, fullTestQos.fps)
+        assertEquals(qos?.droppedFrames, fullTestQos.droppedFrames)
+        qos = null
+
+        //test partial object when all fields are already set, should update fields included and send existing values for the rest
+        val partialTestQos = MediaQoS(startupTime = 5, fps = 6)
+        mediaSession.logQos(partialTestQos)
+        assertNotNull(qos)
+        assertEquals(qos?.startupTime, partialTestQos.startupTime)
+        assertEquals(qos?.bitRate, fullTestQos.bitRate)
+        assertEquals(qos?.fps, partialTestQos.fps)
+        assertEquals(qos?.droppedFrames, fullTestQos.droppedFrames)
+    }
+
+    private fun afterLogApiInvoked(mediaSession: MediaSession, options: Options? = null, onEvent: (Method) -> Unit) {
         val methods = ArrayList<Method>()
         for (method in MediaSession::class.java.methods) {
             if (method.name != "logCustomEvent" && method.name.startsWith("log") && !method.name.endsWith("\$default")) {

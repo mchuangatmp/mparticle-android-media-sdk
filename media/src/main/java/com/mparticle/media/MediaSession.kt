@@ -21,6 +21,7 @@ class MediaSession protected constructor(builder: Builder) {
         private set
     var currentPlayheadPosition: Long? = null
         internal set
+    var sessionQoS = MediaQoS()
 
     var attributes: MutableMap<String, String> = mutableMapOf()
         get() = MediaEvent(this).getSessionAttributes()
@@ -207,9 +208,25 @@ class MediaSession protected constructor(builder: Builder) {
         logQos(mediaQos, options)
     }
 
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.UPDATE_QOS}. The MediaSession maintains QoS state internally,
+     * and will merge the provided MediaQoS argument with the internal object, replacing any null fields in the argument object with
+     * the value of the corresponding field in the internal object, provided the internal object's field is non null.
+     *
+     * Some Kits may replace `null` values with the default primitive
+     *
+     * @param qos the {@link MediaQoS} instance
+     */
+
     fun logQos(qos: MediaQoS, options: Options? = null) {
+        this.sessionQoS = MediaQoS(
+            startupTime = qos.startupTime ?: this.sessionQoS.startupTime,
+            bitRate = qos.bitRate ?: this.sessionQoS.bitRate,
+            fps = qos.fps ?: this.sessionQoS.fps,
+            droppedFrames = qos.droppedFrames ?: this.sessionQoS.droppedFrames
+        )
         val qosEvent = MediaEvent(this, MediaEventName.UPDATE_QOS, options = options).apply {
-            this.qos = qos
+            this.qos = sessionQoS
         }
         logEvent(qosEvent)
     }
