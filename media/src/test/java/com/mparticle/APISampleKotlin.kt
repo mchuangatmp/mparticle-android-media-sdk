@@ -3,6 +3,8 @@ package testpckg
 import com.mparticle.MParticle
 import com.mparticle.media.MediaSession
 import com.mparticle.media.events.*
+import com.mparticle.media.events.EventAttributes.CONTENT_EPISODE
+import com.mparticle.media.events.EventAttributes.PLAYER_NAME
 
 
 fun main() {
@@ -35,9 +37,7 @@ fun main() {
         }
     }
 
-    val options = Options().apply {
-        currentPlayheadPosition = 120000
-    }
+    var options = Options(currentPlayheadPosition = 120000)
 
     mediaSession.logPlay(options)
 
@@ -55,6 +55,13 @@ fun main() {
         siteId = "moms"
         placement = 0
     }
+     options = Options(
+        customAttributes = mapOf(
+            "isFullScreen" to "true",
+            CONTENT_EPISODE to "episode1",
+            PLAYER_NAME to "JWPlayer"
+        )
+    )
 
     mediaSession.logAdBreakStart {
         id = "123456"

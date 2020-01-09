@@ -62,21 +62,21 @@ Starting a MediaSession and logging events. The `MediaSession` fields `title`, `
 Updating playhead position while logging an event
 
 ```kotlin
-    val options = Options().apply {
-        currentPlayheadPosition = 120000
-    }
-
-    mediaSession.logPlay(options)
+    mediaSession.logPlay(
+        Options(currentPlayheadPosition = 120000)
+    )
 ```
 
 Including customAttributes in an event. Common customAttribute keys are available as constants in `OptionsAttributeKeys`, but they may also be free formed Strings
 
 ```kotlin
-    options = Options().apply{
-        "isFullScreen" to true,
-        OptionsAttributeKeys.CONTENT_EPISODE to "episode1",
-        OptionsAttributeKeys.PLAYER_NAME to "JWPlayer"
-    }
+    val options = Options(
+            customAttributes = mapOf(
+                "isFullScreen" to "true",
+                CONTENT_EPISODE to "episode1",
+                PLAYER_NAME to "JWPlayer"
+            )
+        )
     mediaSession.logPlay(options)
 ```
 
