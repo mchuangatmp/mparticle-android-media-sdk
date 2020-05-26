@@ -1,7 +1,12 @@
 package com.mparticle.media.events
+import java.util.*
 
 class MediaSegment(
     var title: String? = null,
     var index: Int? = null,
-    var duration: Long? = null
+    var duration: Long? = null,
+    var segmentStartTimestamp: Long? = null,
+    var segmentEndTimestamp: Long? = null,
+    var segmentSkipped: Boolean = false,
+    var segmentCompleted: Boolean = false
 )

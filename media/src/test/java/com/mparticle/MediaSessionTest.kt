@@ -26,6 +26,7 @@ class MediaSessionTest  {
 
             logMediaEvents = random.nextBoolean()
             logMPEvents = random.nextBoolean()
+            testing = true
         }
 
         var lastMediaEvent: MediaEvent? = null
@@ -53,6 +54,7 @@ class MediaSessionTest  {
 
             logMediaEvents = false
             logMPEvents = true
+            testing = true
         }
 
         afterLogApiInvoked(mediaSession) { method ->
@@ -79,6 +81,7 @@ class MediaSessionTest  {
 
             logMediaEvents = true
             logMPEvents = false
+            testing = true
         }
 
         afterLogApiInvoked(mediaSession) { method ->
@@ -98,6 +101,7 @@ class MediaSessionTest  {
             duration = 1000
             streamType = StreamType.LIVE_STEAM
             contentType = ContentType.VIDEO
+            testing = true
         }
 
         afterLogApiInvoked (mediaSession) { method ->
@@ -127,6 +131,7 @@ class MediaSessionTest  {
             duration = 1000
             streamType = StreamType.LIVE_STEAM
             contentType = ContentType.VIDEO
+            testing = true
         }
 
 
@@ -169,6 +174,7 @@ class MediaSessionTest  {
 
             logMediaEvents = false
             logMPEvents = true
+            testing = true
         }
 
         mediaSession.logPlayheadPosition(1L)
@@ -195,6 +201,7 @@ class MediaSessionTest  {
             duration = random.nextLong().absoluteValue
             mediaContentId = randomUtils.getAlphaNumericString(50)
             title = randomUtils.getAlphaNumericString(50)
+            testing = true
         }
 
         var attributes = mediaSession.attributes
@@ -244,6 +251,7 @@ class MediaSessionTest  {
             duration = random.nextLong().absoluteValue
             mediaContentId = randomUtils.getAlphaNumericString(50)
             title = randomUtils.getAlphaNumericString(50)
+            testing = true
         }
         val options = Options().apply {
             currentPlayheadPosition = random.nextLong()
@@ -278,6 +286,7 @@ class MediaSessionTest  {
 
             logMediaEvents = random.nextBoolean()
             logMPEvents = random.nextBoolean()
+            testing = true
         }
 
         var qos: MediaQoS? = null

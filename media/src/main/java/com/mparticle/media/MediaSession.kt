@@ -6,6 +6,44 @@ import com.mparticle.media.events.*
 import com.mparticle.media.internal.Logger
 import java.util.*
 
+//Summary Event
+const val MediaSessionSummary = "Media Session Summary"
+const val MediaSegmentSummary = "Media Segment Summary"
+const val MediaAdSummary = "Media Ad Summary"
+
+// Session Summary Attributes
+const val mediaSessionIdKey = "media_session_id"
+const val startTimestampKey = "media_session_start_time"
+const val endTimestampKey = "media_session_end_time"
+const val contentIdKey = "content_id"
+const val contentTitleKey = "content_title"
+const val mediaTimeSpentKey = "media_time_spent"
+const val contentTimeSpentKey = "media_content_time_spent"
+const val contentCompleteKey = "media_content_complete"
+const val totalSegmentsKey = "media_session_segment_total"
+const val totalAdTimeSpentKey = "media_total_ad_time_spent"
+const val adTimeSpentRateKey = "media_ad_time_spent_rate"
+const val totalAdsKey = "media_session_ad_total"
+const val adIDsKey = "media_session_ad_objects"
+
+// Ad Summary Attributes
+const val adBreakIdKey = "ad_break_id"
+const val adContentIdKey = "ad_content_id"
+const val adContentStartTimestampKey = "ad_content_start_time"
+const val adContentEndTimestampKey = "ad_content_end_time"
+const val adContentTitleKey = "ad_content_title"
+const val adContentSkippedKey = "ad_skipped"
+const val adContentCompletedKey = "ad_completed"
+
+// Segment Summary Attributes
+const val segmentIndexKey = "segment_index"
+const val segmentTitleKey = "segment_title"
+const val segmentStartTimestampKey = "segment_start_time"
+const val segmentEndTimestampKey = "segment_end_time"
+const val segmentTimeSpentKey = "media_segment_time_spent"
+const val segmentSkippedKey = "segment_skipped"
+const val segmentCompletedKey = "segment_completed"
+
 class MediaSession protected constructor(builder: Builder) {
     var sessionId: String? = null
         private set
@@ -31,6 +69,44 @@ class MediaSession protected constructor(builder: Builder) {
     private var logMPEvents: Boolean
     private var logMediaEvents: Boolean
 
+    private var adContent: MediaAd? = null
+    private var segment: MediaSegment? = null
+
+    private var mediaSessionStartTimestamp: Long //Timestamp created on logMediaSessionStart event
+    private var mediaSessionEndTimestamp: Long //Timestamp updated when any event is logged
+    private val mediaTimeSpent: Double
+        get() { //total seconds between media session start and end time
+            return ((this.mediaSessionEndTimestamp - mediaSessionStartTimestamp) / 1000).toDouble()
+        }
+    private val mediaContentTimeSpent: Double
+        get() { //total seconds spent playing content
+            return if (this.currentPlaybackStartTimestamp != null) {
+                this.storedPlaybackTime + (System.currentTimeMillis().minus(this.currentPlaybackStartTimestamp!!) / 1000).toDouble()
+            } else {
+                this.storedPlaybackTime
+            }
+        }
+    private var mediaContentCompleteLimit: Int = 100
+    private var mediaContentComplete: Boolean = false //Updates to true triggered by logMediaContentEnd (or if 90% or 95% of the content played), 0 or false if complete milestone not reached or a forced quit.
+    private var mediaSessionSegmentTotal: Int = 0 //number incremented with each logSegmentStart
+    private var mediaTotalAdTimeSpent: Double = 0.0 //total second sum of ad break time spent
+    private val mediaAdTimeSpentRate: Double
+        get() { //ad time spent / content time spent x 100
+            return if (this.mediaContentTimeSpent != 0.0) {
+                this.mediaTotalAdTimeSpent / this.mediaContentTimeSpent * 100
+            } else {
+                0.0
+            }
+        }
+    private var mediaSessionAdTotal: Int = 0 //number of ads played in the media session - increment on logAdStart
+    private var mediaSessionAdObjects: MutableList<String> = ArrayList() //array of unique identifiers for ads played in the media session - append ad_content_ID on logAdStart
+
+    private var currentPlaybackStartTimestamp: Long? = null //Timestamp for beginning of current playback
+    private var storedPlaybackTime: Double = 0.0 //On Pause calculate playback time and clear currentPlaybackTime
+    private var sessionSummarySent = false // Ensures we only send summary event once
+
+    private var testing = false // Enabled for test cases
+
     @JvmSynthetic
     var mediaEventListener: ((MediaEvent) -> Unit)? = null
 
@@ -49,6 +125,14 @@ class MediaSession protected constructor(builder: Builder) {
         streamType = builder.streamType.require("streamType")
         logMPEvents = builder.logMPEvents
         logMediaEvents = builder.logMediaEvents
+        if ( 100 >= builder.mediaContentCompleteLimit && builder.mediaContentCompleteLimit > 0) {
+            mediaContentCompleteLimit = builder.mediaContentCompleteLimit
+        }
+        testing = builder.testing
+
+        var currentTimestamp = System.currentTimeMillis()
+        mediaSessionStartTimestamp = currentTimestamp
+        mediaSessionEndTimestamp = currentTimestamp
     }
 
     /**
@@ -57,6 +141,7 @@ class MediaSession protected constructor(builder: Builder) {
      */
     fun logMediaSessionStart(options: Options? = null) {
         sessionId = UUID.randomUUID().toString()
+        mediaSessionStartTimestamp = System.currentTimeMillis()
         val mediaSessionEvent = MediaEvent(this, MediaEventName.SESSION_START, options = options)
         logEvent(mediaSessionEvent)
     }
@@ -67,12 +152,14 @@ class MediaSession protected constructor(builder: Builder) {
     fun logMediaSessionEnd(options: Options? = null) {
         val mediaSessionEvent = MediaEvent(this, MediaEventName.SESSION_END, options = options)
         logEvent(mediaSessionEvent)
+        logSessionSummary()
     }
 
     /**
      * Indicate that the content for the MediaSession has ended. This will NOT end the MediaSession
      */
     fun logMediaContentEnd(options: Options? = null) {
+        mediaContentComplete = true
         val mediaSessionEvent = MediaEvent(this, MediaEventName.CONTENT_END, options = options)
         logEvent(mediaSessionEvent)
     }
@@ -81,6 +168,9 @@ class MediaSession protected constructor(builder: Builder) {
      * Log a MediaEvent of type {@link MediaEventName.PLAY}
      */
     fun logPlay(options: Options? = null) {
+        if (currentPlaybackStartTimestamp == null) {
+            currentPlaybackStartTimestamp = System.currentTimeMillis()
+        }
         val playEvent = MediaEvent(this, MediaEventName.PLAY, options = options)
         logEvent(playEvent)
     }
@@ -89,6 +179,10 @@ class MediaSession protected constructor(builder: Builder) {
      * Log a MediaEvent of type {@link MediaEventName.PAUSE}
      */
     fun logPause(options: Options? = null) {
+        if (currentPlaybackStartTimestamp == null) {
+            storedPlaybackTime += ((System.currentTimeMillis() - currentPlaybackStartTimestamp!!) / 1000)
+            currentPlaybackStartTimestamp = null;
+        }
         val pauseEvent = MediaEvent(this, MediaEventName.PAUSE, options = options)
         logEvent(pauseEvent)
     }
@@ -194,6 +288,9 @@ class MediaSession protected constructor(builder: Builder) {
 
     fun logAdStart(options: Options? = null, builder: MediaAd.() -> Unit) {
         val mediaAd = MediaAd()
+        mediaAd.adStartTimestamp = System.currentTimeMillis()
+        mediaSessionAdTotal += 1
+        mediaAd.id?.let { mediaSessionAdObjects.add(it) }
         mediaAd.builder()
         logAdStart(mediaAd, options)
     }
@@ -204,6 +301,7 @@ class MediaSession protected constructor(builder: Builder) {
      * @param ad the {@link MediaAd} instance
      */
     fun logAdStart(ad: MediaAd, options: Options? = null) {
+        adContent = ad
         val adStartEvent = MediaEvent(this, MediaEventName.AD_START, options = options).apply {
             mediaAd = ad
         }
@@ -214,16 +312,30 @@ class MediaSession protected constructor(builder: Builder) {
      * Log a MediaEvent of type {@link MediaEventName.AD_END}
      */
     fun logAdEnd(options: Options? = null) {
+        if (adContent?.adStartTimestamp != null) {
+            adContent?.adEndTimestamp = System.currentTimeMillis()
+            adContent?.adCompleted = true
+            mediaTotalAdTimeSpent += ((adContent!!.adEndTimestamp!! - adContent!!.adStartTimestamp!!) / 1000)
+        }
         val adEndEvent = MediaEvent(this, MediaEventName.AD_END, options = options)
         logEvent(adEndEvent)
+
+        logAdSummary(adContent)
     }
 
     /**
      * Log a MediaEvent of type {@link MediaEventName.AD_SKIP}
      */
     fun logAdSkip(options: Options? = null) {
+        if (adContent?.adStartTimestamp != null) {
+            adContent?.adEndTimestamp = System.currentTimeMillis()
+            adContent?.adSkipped = true
+            mediaTotalAdTimeSpent += ((adContent!!.adEndTimestamp!! - adContent!!.adStartTimestamp!!) / 1000)
+        }
         val adSkipEvent = MediaEvent(this, MediaEventName.AD_SKIP, options = options)
         logEvent(adSkipEvent)
+
+        logAdSummary(adContent)
     }
 
     /**
@@ -237,8 +349,11 @@ class MediaSession protected constructor(builder: Builder) {
     }
 
     fun logSegmentStart(options: Options? = null, builder: MediaSegment.() -> Unit) {
+        mediaSessionSegmentTotal += 1
         val mediaSegment = MediaSegment()
         mediaSegment.builder()
+        segment = mediaSegment
+        segment?.segmentStartTimestamp = System.currentTimeMillis()
         logSegmentStart(mediaSegment, options)
     }
 
@@ -258,16 +373,24 @@ class MediaSession protected constructor(builder: Builder) {
      * Log a MediaEvent of type {@link MediaEventName.SEGMENT_SKIP}
      */
     fun logSegmentSkip(options: Options? = null) {
+        segment?.segmentEndTimestamp = System.currentTimeMillis()
+        segment?.segmentSkipped = true
         val segmentSkipEvent = MediaEvent(this, MediaEventName.SEGMENT_SKIP, options = options)
         logEvent(segmentSkipEvent)
+
+        logSegmentSummary(segment)
     }
 
     /**
      * Log a MediaEvent of type {@link MediaEventName.SEGMENT_END}
      */
     fun logSegmentEnd(options: Options? = null) {
+        segment?.segmentEndTimestamp = System.currentTimeMillis()
+        segment?.segmentCompleted = true
         val segmentEndEvent = MediaEvent(this, MediaEventName.SEGMENT_END, options = options)
         logEvent(segmentEndEvent)
+
+        logSegmentSummary(segment)
     }
 
     /**
@@ -323,12 +446,12 @@ class MediaSession protected constructor(builder: Builder) {
 
     /**
      * Create a MPEvent in the current MediaSession context. The {@link BaseEvent#customAttributes()}
-     * will be populated with the relivant {@link MediaContent} fields which belong to the MediaSession
+     * will be populated with the relevant {@link MediaContent} fields which belong to the MediaSession
      * instance. This includes "title", "mediaContentId", "duration", "streamType" and "contentType"
      */
-    fun buildMPEvent(eventName: String, customAttributes: Map<String, String>): MPEvent {
+    fun buildMPEvent(eventName: String, customAttributes: Map<String, String>?): MPEvent {
         val eventAttributes = attributes
-        eventAttributes.putAll(customAttributes)
+        customAttributes?.let { eventAttributes.putAll(it) }
         return MPEvent.Builder(eventName)
             .customAttributes(customAttributes)
             .build()
@@ -342,9 +465,99 @@ class MediaSession protected constructor(builder: Builder) {
         mediaEventListener = { mediaEvent -> listener.onLogMediaEvent(mediaEvent)}
     }
 
+    private fun logSessionSummary() {
+        if (!sessionSummarySent  && !testing) {
+            var customAttributes: MutableMap<String, String> = mutableMapOf()
+            if (sessionId != null) {
+                customAttributes[mediaSessionIdKey] = sessionId!!
+            }
+            customAttributes[startTimestampKey] = mediaSessionStartTimestamp.toString()
+            customAttributes[endTimestampKey] = mediaSessionEndTimestamp.toString()
+            customAttributes[contentIdKey] = mediaContentId
+            customAttributes[contentTitleKey] = title
+            customAttributes[mediaTimeSpentKey] = mediaTimeSpent.toString()
+            customAttributes[contentTimeSpentKey] = mediaContentTimeSpent.toString()
+            customAttributes[contentCompleteKey] = mediaContentComplete.toString()
+            customAttributes[totalSegmentsKey] = mediaSessionSegmentTotal.toString()
+            customAttributes[totalAdTimeSpentKey] = mediaTotalAdTimeSpent.toString()
+            customAttributes[adTimeSpentRateKey] = mediaAdTimeSpentRate.toString()
+            customAttributes[totalAdsKey] = mediaSessionAdTotal.toString()
+            customAttributes[adIDsKey] = mediaSessionAdObjects.toString()
+
+            var summaryEvent = buildMPEvent(MediaSessionSummary, customAttributes)
+            mparticleInstance?.logEvent(summaryEvent)
+
+            sessionSummarySent = true
+        }
+    }
+
+    private fun logSegmentSummary(summary: MediaSegment?) {
+        if ((segment?.segmentStartTimestamp != null) && !testing) {
+            var segmentSummary = summary!!;
+            if (segmentSummary.segmentEndTimestamp == null) {
+                segmentSummary.segmentEndTimestamp = System.currentTimeMillis()
+            }
+
+            var customAttributes: MutableMap<String, String> = mutableMapOf()
+            if (sessionId != null) {
+                customAttributes[mediaSessionIdKey] = sessionId!!
+            }
+            customAttributes[mediaContentId] = mediaContentId
+            customAttributes[segmentIndexKey] = segmentSummary.index.toString()
+            if (segmentSummary.title != null) {
+                customAttributes[segmentTitleKey] = segmentSummary.title!!
+            }
+            customAttributes[segmentStartTimestampKey] = segmentSummary.segmentStartTimestamp.toString()
+            customAttributes[segmentEndTimestampKey] = segmentSummary.segmentEndTimestamp.toString()
+            customAttributes[segmentTimeSpentKey] = (((segmentSummary.segmentEndTimestamp!! - segmentSummary.segmentStartTimestamp!!) / 1000).toDouble()).toString()
+            customAttributes[segmentSkippedKey] = segmentSummary.segmentSkipped.toString()
+            customAttributes[segmentCompletedKey] = segmentSummary.segmentCompleted.toString()
+
+            var summaryEvent = buildMPEvent(MediaSegmentSummary, customAttributes)
+            mparticleInstance?.logEvent(summaryEvent)
+
+            segment = null
+        }
+    }
+
+    private fun logAdSummary(content: MediaAd?) {
+        if (content != null && !testing) {
+            var ad = content;
+            if (ad.adStartTimestamp != null) {
+                ad.adEndTimestamp = System.currentTimeMillis()
+                mediaTotalAdTimeSpent += ((ad.adEndTimestamp!! - ad.adStartTimestamp!!) / 1000).toDouble()
+            }
+
+            var customAttributes: MutableMap<String, String> = mutableMapOf()
+            if (sessionId != null) {
+                customAttributes[mediaSessionIdKey] = sessionId!!
+            }
+            if (ad.id != null) {
+                customAttributes[adContentIdKey] = ad.id!!
+            }
+            customAttributes[adContentStartTimestampKey] = ad.adStartTimestamp!!.toString()
+            customAttributes[adContentEndTimestampKey] = ad.adEndTimestamp!!.toString()
+            if (ad.title != null) {
+                customAttributes[adContentTitleKey] = ad.title!!
+            }
+            customAttributes[adContentSkippedKey] = ad.adSkipped.toString()
+            customAttributes[adContentCompletedKey] = ad.adCompleted.toString()
+
+            var summaryEvent = buildMPEvent(MediaAdSummary, customAttributes)
+            mparticleInstance?.logEvent(summaryEvent)
+
+            adContent = null
+        }
+    }
+
     protected fun logEvent(mediaEvent: MediaEvent) {
         if (mparticleInstance == null) {
             mparticleInstance = MParticle.getInstance()
+        }
+
+        mediaSessionEndTimestamp = System.currentTimeMillis()
+        if (mediaContentCompleteLimit < 100 && (duration != null && currentPlayheadPosition != null) && ((currentPlayheadPosition!! / duration!!) >= (mediaContentCompleteLimit / 100))) {
+            mediaContentComplete = true
         }
 
         mediaEventListener?.invoke(mediaEvent)
@@ -402,7 +615,12 @@ class MediaSession protected constructor(builder: Builder) {
         var logMPEvents: Boolean = false
             @JvmSynthetic
             set
-
+        var mediaContentCompleteLimit = 100
+            @JvmSynthetic
+            set
+        var testing: Boolean = false
+            @JvmSynthetic
+            set
         /**
          * Set the Title of the {@link MediaContent} for this {@link MediaSession}
          */
@@ -458,6 +676,22 @@ class MediaSession protected constructor(builder: Builder) {
          */
         fun logMPEvents(shouldLog: Boolean): Builder {
             this.logMPEvents = shouldLog
+            return this
+        }
+
+        /**
+         * Set the Percentage of the {@link MediaContent} the user needs to progress to for content to be marked complete
+         */
+        fun mediaContentCompleteLimit(contentCompleteLimit: Int): Builder {
+            this.mediaContentCompleteLimit = contentCompleteLimit
+            return this
+        }
+
+        /**
+         * Indicate whether this is being used in testing or development
+         */
+        fun testing(isTest: Boolean): Builder {
+            this.testing = isTest
             return this
         }
 
