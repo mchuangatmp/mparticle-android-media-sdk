@@ -53,7 +53,8 @@ fun main() {
         duration = 60000
         creative = "A Fistful of Dollars"
         siteId = "moms"
-        placement = 0
+        placement = "first"
+        position = 0
     }
      options = Options(
         customAttributes = mapOf(

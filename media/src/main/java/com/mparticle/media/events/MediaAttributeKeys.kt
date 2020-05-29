@@ -42,6 +42,7 @@ object MediaAttributeKeys {
     const val AD_CAMPAIGN = "ad_content_campaign"
     const val AD_CREATIVE = "ad_content_creative"
     const val AD_PLACEMENT = "ad_content_placement"
+    const val AD_POSITION = "ad_content_position"
     const val AD_SITE_ID = "ad_content_site_id"
 
     //MediaAdBreak

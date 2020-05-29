@@ -96,6 +96,7 @@ open class MediaEvent(
             eventAttributes.putIfNotNull(MediaAttributeKeys.AD_SITE_ID, mediaAd.siteId)
             eventAttributes.putIfNotNull(MediaAttributeKeys.AD_DURATION, mediaAd.duration)
             eventAttributes.putIfNotNull(MediaAttributeKeys.AD_PLACEMENT, mediaAd.placement)
+            eventAttributes.putIfNotNull(MediaAttributeKeys.AD_POSITION, mediaAd.position)
         }
         segment?.also { segment ->
             eventAttributes.putIfNotNull(MediaAttributeKeys.SEGMENT_TITLE, segment.title)

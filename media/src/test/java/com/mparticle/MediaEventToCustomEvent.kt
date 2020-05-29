@@ -102,7 +102,8 @@ class MediaEventToCustomEvent {
                 id = randomUtils.getAlphaNumericString(24)
                 advertiser = randomUtils.getAlphaNumericString(24)
                 duration = random.nextLong()
-                placement = random.nextInt()
+                placement = randomUtils.getAlphaNumericString(24)
+                position = random.nextInt()
                 siteId = randomUtils.getAlphaNumericString(24)
             }
             adBreak = MediaAdBreak().apply {
@@ -133,7 +134,8 @@ class MediaEventToCustomEvent {
             assertEquals(mediaEvent.mediaAd!!.advertiser, remove(MediaAttributeKeys.AD_ADVERTISING_ID))
             assertEquals(mediaEvent.mediaAd!!.campaign, remove(MediaAttributeKeys.AD_CAMPAIGN))
             assertEquals(mediaEvent.mediaAd!!.duration.toString(), remove(MediaAttributeKeys.AD_DURATION))
-            assertEquals(mediaEvent.mediaAd!!.placement.toString(), remove(MediaAttributeKeys.AD_PLACEMENT))
+            assertEquals(mediaEvent.mediaAd!!.placement, remove(MediaAttributeKeys.AD_PLACEMENT))
+            assertEquals(mediaEvent.mediaAd!!.position.toString(), remove(MediaAttributeKeys.AD_POSITION))
 
             assertEquals(mediaEvent.adBreak!!.duration.toString(), remove(MediaAttributeKeys.AD_BREAK_DURATION))
             assertEquals(mediaEvent.adBreak!!.title, remove(MediaAttributeKeys.AD_BREAK_TITLE))
