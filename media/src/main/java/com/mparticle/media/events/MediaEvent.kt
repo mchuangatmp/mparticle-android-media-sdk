@@ -115,49 +115,50 @@ open class MediaEvent(
         val json = JSONObject()
         json.put("type", eventName)
         json.put("id", id)
-        if (playheadPosition != null) {
-            json.put("playhead position", playheadPosition!!)
+        playheadPosition?.let {
+            json.put("playhead position", it)
         }
-        if (seekPosition != null) {
-            json.put("seek position", seekPosition!!)
+        seekPosition?.let {
+            json.put("seek position", it)
         }
-        if (bufferDuration != null) {
-            json.put("buffer duration", bufferDuration!!)
+        bufferDuration?.let {
+            json.put("buffer duration", it)
         }
-        if (bufferPercent != null) {
-            json.put("buffer percent", bufferPercent!!)
+        bufferPercent?.let {
+            json.put("buffer percent", it)
         }
-        if (bufferPosition != null) {
-            json.put("buffer position", bufferPosition!!)
+        bufferPosition?.let {
+            json.put("buffer position", it)
         }
-        if (qos != null) {
+        qos?.apply {
             json.put("qos", JSONObject()
-                .put("bit rate", qos?.bitRate)
-                .put("dropped frames", qos?.droppedFrames)
-                .put("fps", qos?.fps)
-                .put("startup time", qos?.startupTime))
+                .put("bit rate", bitRate)
+                .put("dropped frames", droppedFrames)
+                .put("fps", fps)
+                .put("startup time", startupTime))
         }
-        if (mediaAd != null) {
+        mediaAd?.apply { 
             json.put("media ad", JSONObject()
-                .put("title", mediaAd?.title)
-                .put("id", mediaAd?.id)
-                .put("advertiser", mediaAd?.advertiser)
-                .put("campaign", mediaAd?.campaign)
-                .put("creative", mediaAd?.creative)
-                .put("siteId", mediaAd?.siteId)
-                .put("duration", mediaAd?.duration)
-                .put("placement", mediaAd?.placement))
+                .put("title", title)
+                .put("id", id)
+                .put("advertiser", advertiser)
+                .put("campaign", campaign)
+                .put("creative", creative)
+                .put("siteId", siteId)
+                .put("duration", duration)
+                .put("placement", placement))
+                .put("position", position)
         }
-        if (segment != null) {
+        segment?.apply {
             json.put("segment", JSONObject()
-                .put("title", segment?.title)
-                .put("index", segment?.index)
-                .put("duration", segment?.duration))
+                .put("title", title)
+                .put("index", index)
+                .put("duration", duration))
         }
-        if (adBreak != null) {
+        adBreak?.apply {
             json.put("adBreak", JSONObject()
-                .put("title", adBreak?.title)
-                .put("duration", adBreak?.duration))
+                .put("title", title)
+                .put("duration", duration))
         }
         json.put("Media Content", JSONObject()
             .put("name", mediaContent.name)

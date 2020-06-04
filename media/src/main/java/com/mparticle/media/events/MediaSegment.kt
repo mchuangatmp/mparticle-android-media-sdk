@@ -1,5 +1,4 @@
 package com.mparticle.media.events
-import java.util.*
 
 class MediaSegment(
     var title: String? = null,

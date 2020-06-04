@@ -80,11 +80,9 @@ class MediaSession protected constructor(builder: Builder) {
         }
     private val mediaContentTimeSpent: Double
         get() { //total seconds spent playing content
-            return if (this.currentPlaybackStartTimestamp != null) {
-                this.storedPlaybackTime + (System.currentTimeMillis().minus(this.currentPlaybackStartTimestamp!!) / 1000).toDouble()
-            } else {
-                this.storedPlaybackTime
-            }
+            return currentPlayheadPosition?.let {
+                this.storedPlaybackTime + (System.currentTimeMillis().minus(it) / 1000).toDouble()
+            } ?: this.storedPlaybackTime
         }
     private var mediaContentCompleteLimit: Int = 100
     private var mediaContentComplete: Boolean = false //Updates to true triggered by logMediaContentEnd (or if 90% or 95% of the content played), 0 or false if complete milestone not reached or a forced quit.
@@ -128,7 +126,6 @@ class MediaSession protected constructor(builder: Builder) {
         if ( 100 >= builder.mediaContentCompleteLimit && builder.mediaContentCompleteLimit > 0) {
             mediaContentCompleteLimit = builder.mediaContentCompleteLimit
         }
-        testing = builder.testing
 
         var currentTimestamp = System.currentTimeMillis()
         mediaSessionStartTimestamp = currentTimestamp
@@ -179,8 +176,8 @@ class MediaSession protected constructor(builder: Builder) {
      * Log a MediaEvent of type {@link MediaEventName.PAUSE}
      */
     fun logPause(options: Options? = null) {
-        if (currentPlaybackStartTimestamp == null) {
-            storedPlaybackTime += ((System.currentTimeMillis() - currentPlaybackStartTimestamp!!) / 1000)
+        currentPlaybackStartTimestamp?.let {
+            storedPlaybackTime += ((System.currentTimeMillis() - it) / 1000)
             currentPlaybackStartTimestamp = null;
         }
         val pauseEvent = MediaEvent(this, MediaEventName.PAUSE, options = options)
@@ -312,10 +309,11 @@ class MediaSession protected constructor(builder: Builder) {
      * Log a MediaEvent of type {@link MediaEventName.AD_END}
      */
     fun logAdEnd(options: Options? = null) {
-        if (adContent?.adStartTimestamp != null) {
-            adContent?.adEndTimestamp = System.currentTimeMillis()
+        adContent?.adStartTimestamp?.let {startTime ->
+            val endTime = System.currentTimeMillis()
+            adContent?.adEndTimestamp = endTime
             adContent?.adCompleted = true
-            mediaTotalAdTimeSpent += ((adContent!!.adEndTimestamp!! - adContent!!.adStartTimestamp!!) / 1000)
+            mediaTotalAdTimeSpent += ((endTime - startTime) / 1000)
         }
         val adEndEvent = MediaEvent(this, MediaEventName.AD_END, options = options)
         logEvent(adEndEvent)
@@ -327,10 +325,11 @@ class MediaSession protected constructor(builder: Builder) {
      * Log a MediaEvent of type {@link MediaEventName.AD_SKIP}
      */
     fun logAdSkip(options: Options? = null) {
-        if (adContent?.adStartTimestamp != null) {
-            adContent?.adEndTimestamp = System.currentTimeMillis()
+        adContent?.adStartTimestamp?.let {startTime ->
+            val endTime = System.currentTimeMillis()
+            adContent?.adEndTimestamp = endTime
             adContent?.adSkipped = true
-            mediaTotalAdTimeSpent += ((adContent!!.adEndTimestamp!! - adContent!!.adStartTimestamp!!) / 1000)
+            mediaTotalAdTimeSpent += ((endTime - startTime) / 1000)
         }
         val adSkipEvent = MediaEvent(this, MediaEventName.AD_SKIP, options = options)
         logEvent(adSkipEvent)
@@ -466,10 +465,10 @@ class MediaSession protected constructor(builder: Builder) {
     }
 
     private fun logSessionSummary() {
-        if (!sessionSummarySent  && !testing) {
+        if (!sessionSummarySent) {
             var customAttributes: MutableMap<String, String> = mutableMapOf()
-            if (sessionId != null) {
-                customAttributes[mediaSessionIdKey] = sessionId!!
+            sessionId?.let {
+                customAttributes[mediaSessionIdKey] = it
             }
             customAttributes[startTimestampKey] = mediaSessionStartTimestamp.toString()
             customAttributes[endTimestampKey] = mediaSessionEndTimestamp.toString()
@@ -492,53 +491,62 @@ class MediaSession protected constructor(builder: Builder) {
     }
 
     private fun logSegmentSummary(summary: MediaSegment?) {
-        if ((segment?.segmentStartTimestamp != null) && !testing) {
-            var segmentSummary = summary!!;
-            if (segmentSummary.segmentEndTimestamp == null) {
-                segmentSummary.segmentEndTimestamp = System.currentTimeMillis()
-            }
+        segment?.segmentStartTimestamp?.let { segmentStartTimestamp ->
+            summary?.let { segmentSummary ->
+                var segmentEndTimestamp = segment?.segmentEndTimestamp
+                if (segmentEndTimestamp == null) {
+                    segmentEndTimestamp = System.currentTimeMillis()
+                    segmentSummary.segmentEndTimestamp = segmentEndTimestamp
+                }
 
-            var customAttributes: MutableMap<String, String> = mutableMapOf()
-            if (sessionId != null) {
-                customAttributes[mediaSessionIdKey] = sessionId!!
-            }
-            customAttributes[mediaContentId] = mediaContentId
-            customAttributes[segmentIndexKey] = segmentSummary.index.toString()
-            if (segmentSummary.title != null) {
-                customAttributes[segmentTitleKey] = segmentSummary.title!!
-            }
-            customAttributes[segmentStartTimestampKey] = segmentSummary.segmentStartTimestamp.toString()
-            customAttributes[segmentEndTimestampKey] = segmentSummary.segmentEndTimestamp.toString()
-            customAttributes[segmentTimeSpentKey] = (((segmentSummary.segmentEndTimestamp!! - segmentSummary.segmentStartTimestamp!!) / 1000).toDouble()).toString()
-            customAttributes[segmentSkippedKey] = segmentSummary.segmentSkipped.toString()
-            customAttributes[segmentCompletedKey] = segmentSummary.segmentCompleted.toString()
+                var customAttributes: MutableMap<String, String> = mutableMapOf()
+                sessionId?.let {
+                    customAttributes[mediaSessionIdKey] = it
+                }
+                customAttributes[mediaContentId] = mediaContentId
+                customAttributes[segmentIndexKey] = segmentSummary.index.toString()
+                segmentSummary.title?.let {
+                    customAttributes[segmentTitleKey] = it
+                }
+                customAttributes[segmentStartTimestampKey] =
+                    segmentSummary.segmentStartTimestamp.toString()
+                customAttributes[segmentEndTimestampKey] =
+                    segmentSummary.segmentEndTimestamp.toString()
+                customAttributes[segmentTimeSpentKey] =
+                    (((segmentEndTimestamp - segmentStartTimestamp) / 1000).toDouble()).toString()
+                customAttributes[segmentSkippedKey] = segmentSummary.segmentSkipped.toString()
+                customAttributes[segmentCompletedKey] = segmentSummary.segmentCompleted.toString()
 
-            var summaryEvent = buildMPEvent(MediaSegmentSummary, customAttributes)
-            mparticleInstance?.logEvent(summaryEvent)
-
+                var summaryEvent = buildMPEvent(MediaSegmentSummary, customAttributes)
+                mparticleInstance?.logEvent(summaryEvent)
+            }
             segment = null
         }
     }
 
     private fun logAdSummary(content: MediaAd?) {
-        if (content != null && !testing) {
-            var ad = content;
-            if (ad.adStartTimestamp != null) {
-                ad.adEndTimestamp = System.currentTimeMillis()
-                mediaTotalAdTimeSpent += ((ad.adEndTimestamp!! - ad.adStartTimestamp!!) / 1000).toDouble()
+        content?.let { ad ->
+            ad.adStartTimestamp?.let { startTime ->
+                val endTime = System.currentTimeMillis()
+                ad.adEndTimestamp = endTime
+                mediaTotalAdTimeSpent += ((endTime - startTime) / 1000).toDouble()
             }
 
-            var customAttributes: MutableMap<String, String> = mutableMapOf()
-            if (sessionId != null) {
-                customAttributes[mediaSessionIdKey] = sessionId!!
+            val customAttributes: MutableMap<String, String> = mutableMapOf()
+            sessionId?.let {
+                customAttributes[mediaSessionIdKey] = it
             }
-            if (ad.id != null) {
-                customAttributes[adContentIdKey] = ad.id!!
+            ad.id?.let {
+                customAttributes[adContentIdKey] = it
             }
-            customAttributes[adContentStartTimestampKey] = ad.adStartTimestamp!!.toString()
-            customAttributes[adContentEndTimestampKey] = ad.adEndTimestamp!!.toString()
-            if (ad.title != null) {
-                customAttributes[adContentTitleKey] = ad.title!!
+            ad.adStartTimestamp?.let {
+                customAttributes[adContentStartTimestampKey] = it.toString()
+            }
+            ad.adEndTimestamp?.let {
+                customAttributes[adContentEndTimestampKey] = it.toString()
+            }
+            ad.title?.let {
+                customAttributes[adContentTitleKey] = it
             }
             customAttributes[adContentSkippedKey] = ad.adSkipped.toString()
             customAttributes[adContentCompletedKey] = ad.adCompleted.toString()
@@ -618,9 +626,6 @@ class MediaSession protected constructor(builder: Builder) {
         var mediaContentCompleteLimit = 100
             @JvmSynthetic
             set
-        var testing: Boolean = false
-            @JvmSynthetic
-            set
         /**
          * Set the Title of the {@link MediaContent} for this {@link MediaSession}
          */
@@ -684,14 +689,6 @@ class MediaSession protected constructor(builder: Builder) {
          */
         fun mediaContentCompleteLimit(contentCompleteLimit: Int): Builder {
             this.mediaContentCompleteLimit = contentCompleteLimit
-            return this
-        }
-
-        /**
-         * Indicate whether this is being used in testing or development
-         */
-        fun testing(isTest: Boolean): Builder {
-            this.testing = isTest
             return this
         }
 

@@ -9,7 +9,7 @@ object Logger {
     private val DEFAULT_MIN_LOG_LEVEL = LogLevel.DEBUG
     private var sMinLogLevel = DEFAULT_MIN_LOG_LEVEL
     private var sExplicitlySet = false
-    private var logHandler: AbstractLogHandler? =
+    private var logHandler: AbstractLogHandler =
         DefaultLogHandler()
 
     fun setMinLogLevel(minLogLevel: LogLevel) {
@@ -97,16 +97,12 @@ object Logger {
      * For example, you can use this method to throw an exception every time an "error" log is called.
      * @param logListener
      */
-    fun setLogHandler(logListener: AbstractLogHandler) {
-        logHandler = logListener
+    fun setLogHandler(logListener: AbstractLogHandler?) {
+        logHandler = logListener ?: DefaultLogHandler()
     }
 
     fun getLogHandler(): AbstractLogHandler {
-        if (logHandler == null) {
-            logHandler =
-                DefaultLogHandler()
-        }
-        return logHandler!!
+        return logHandler
     }
 
     abstract class AbstractLogHandler {

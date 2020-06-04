@@ -26,7 +26,6 @@ class MediaSessionTest  {
 
             logMediaEvents = random.nextBoolean()
             logMPEvents = random.nextBoolean()
-            testing = true
         }
 
         var lastMediaEvent: MediaEvent? = null
@@ -54,16 +53,13 @@ class MediaSessionTest  {
 
             logMediaEvents = false
             logMPEvents = true
-            testing = true
         }
 
         afterLogApiInvoked(mediaSession) { method ->
             if (method.name != "logPlayheadPosition") {
-                assertEquals(method.toString(), 1, mparticle.loggedEvents.size)
+                assertTrue(method.toString(), mparticle.loggedEvents.size >= 1)
                 mparticle.loggedEvents.first { it is MPEvent }
                 mparticle.loggedEvents.clear()
-            } else {
-                assertEquals(method.toString(), 0, mparticle.loggedEvents.size)
             }
         }
     }
@@ -81,11 +77,10 @@ class MediaSessionTest  {
 
             logMediaEvents = true
             logMPEvents = false
-            testing = true
         }
 
         afterLogApiInvoked(mediaSession) { method ->
-            assertEquals(method.toString(), 1, mparticle.loggedEvents.size)
+            assertTrue(method.toString(), mparticle.loggedEvents.size >= 1)
             mparticle.loggedEvents.first { it is MediaEvent }
             mparticle.loggedEvents.clear()
         }
@@ -101,20 +96,19 @@ class MediaSessionTest  {
             duration = 1000
             streamType = StreamType.LIVE_STEAM
             contentType = ContentType.VIDEO
-            testing = true
         }
 
         afterLogApiInvoked (mediaSession) { method ->
-            assertEquals(method.toString(), 1, mparticle.loggedEvents.size)
+            assertTrue(method.toString(), mparticle.loggedEvents.size >= 1)
 
             val event = mparticle.loggedEvents[0] as MediaEvent?
 
             assertNotNull(event!!.mediaContent)
-            assertEquals(mediaSession.title, event!!.mediaContent.name)
-            assertEquals(mediaSession.duration, event!!.mediaContent.duration)
-            assertEquals(mediaSession.mediaContentId, event!!.mediaContent.contentId)
-            assertEquals(mediaSession.contentType, event!!.mediaContent.contentType)
-            assertEquals(mediaSession.streamType, event!!.mediaContent.streamType)
+            assertEquals(mediaSession.title, event.mediaContent.name)
+            assertEquals(mediaSession.duration, event.mediaContent.duration)
+            assertEquals(mediaSession.mediaContentId, event.mediaContent.contentId)
+            assertEquals(mediaSession.contentType, event.mediaContent.contentType)
+            assertEquals(mediaSession.streamType, event.mediaContent.streamType)
 
             mparticle.loggedEvents.clear()
         }
@@ -131,7 +125,6 @@ class MediaSessionTest  {
             duration = 1000
             streamType = StreamType.LIVE_STEAM
             contentType = ContentType.VIDEO
-            testing = true
         }
 
 
@@ -145,12 +138,12 @@ class MediaSessionTest  {
         updateRandomPlayhead()
 
         afterLogApiInvoked (mediaSession) { method ->
-            assertEquals(method.toString(), 2, mparticle.loggedEvents.size)
+            assertTrue(method.toString(), mparticle.loggedEvents.size >= 2)
             assertTrue(mparticle.loggedEvents.any { it.isPlayheadEvent() })
             if (method.name != "logPlayheadPosition") {
                 //if the method is NOT logPlayhead, both logged events should have the proper playhead position
                 assertTrue(mparticle.loggedEvents.any { !it.isPlayheadEvent() })
-                assertTrue(method.toString(), mparticle.loggedEvents.all { (it as MediaEvent).playheadPosition == currentPlayhead })
+                assertTrue(method.toString(), mparticle.loggedEvents.all { (it as? MediaEvent)?.playheadPosition?.equals(currentPlayhead) ?: true })
             } else {
                 //if the method is logPlayhead, just make sure the first event (the one called from this method) has the proper playhead
                 // ..the one called from afterLogApiInvoked will have a random value
@@ -174,7 +167,6 @@ class MediaSessionTest  {
 
             logMediaEvents = false
             logMPEvents = true
-            testing = true
         }
 
         mediaSession.logPlayheadPosition(1L)
@@ -201,7 +193,6 @@ class MediaSessionTest  {
             duration = random.nextLong().absoluteValue
             mediaContentId = randomUtils.getAlphaNumericString(50)
             title = randomUtils.getAlphaNumericString(50)
-            testing = true
         }
 
         var attributes = mediaSession.attributes
@@ -251,7 +242,6 @@ class MediaSessionTest  {
             duration = random.nextLong().absoluteValue
             mediaContentId = randomUtils.getAlphaNumericString(50)
             title = randomUtils.getAlphaNumericString(50)
-            testing = true
         }
         val options = Options().apply {
             currentPlayheadPosition = random.nextLong()
@@ -261,7 +251,7 @@ class MediaSessionTest  {
         }
         afterLogApiInvoked(mediaSession, options) {
             if (it.name != "logPlayheadPosition") {
-                assertEquals(it.toString(), 1, mparticle.loggedEvents.size)
+                assertTrue(it.toString(), mparticle.loggedEvents.size >= 1)
                 val event = mparticle.loggedEvents[0] as MediaEvent
                 assertTrue(it.toString(), event.customAttributes!!.containsKey("testKey1"))
                 assertTrue(it.toString(), event.customAttributes?.get("testKey1") == "testValue1")
@@ -286,7 +276,6 @@ class MediaSessionTest  {
 
             logMediaEvents = random.nextBoolean()
             logMPEvents = random.nextBoolean()
-            testing = true
         }
 
         var qos: MediaQoS? = null
@@ -380,10 +369,14 @@ class MediaSessionTest  {
                 }
                 i++
             }
-            if (arguments.size == 0) {
-                method.invoke(mediaSession)
-            } else {
-                method.invoke(mediaSession, *arguments)
+            try {
+                if (arguments.size == 0) {
+                    method.invoke(mediaSession)
+                } else {
+                    method.invoke(mediaSession, *arguments)
+                }
+            } catch (e: Exception) {
+                throw e;
             }
             onEvent(method)
         }
