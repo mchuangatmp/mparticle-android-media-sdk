@@ -58,7 +58,7 @@ class MediaSessionTest  {
         afterLogApiInvoked(mediaSession) { method ->
             if (method.name != "logPlayheadPosition") {
                 assertTrue(method.toString(), mparticle.loggedEvents.size >= 1)
-                mparticle.loggedEvents.first { it is MPEvent }
+                assertTrue(mparticle.loggedEvents.any { it is MPEvent && it.eventType == MParticle.EventType.Media })
                 mparticle.loggedEvents.clear()
             }
         }
@@ -81,7 +81,7 @@ class MediaSessionTest  {
 
         afterLogApiInvoked(mediaSession) { method ->
             assertTrue(method.toString(), mparticle.loggedEvents.size >= 1)
-            mparticle.loggedEvents.first { it is MediaEvent }
+            assertTrue(mparticle.loggedEvents.any { it is MediaEvent })
             mparticle.loggedEvents.clear()
         }
     }
@@ -329,6 +329,23 @@ class MediaSessionTest  {
         assertEquals(qos?.bitRate, fullTestQos.bitRate)
         assertEquals(qos?.fps, partialTestQos.fps)
         assertEquals(qos?.droppedFrames, fullTestQos.droppedFrames)
+    }
+
+    @Test
+    fun `test MPEvents built from MediaSession have proper EventType`() {
+        val mparticle = MockMParticle()
+        val mediaSessionMPEvent = MediaSession.builder(mparticle) {
+            title = "hello"
+            mediaContentId ="123"
+            duration =1000
+            streamType = StreamType.LIVE_STEAM
+            contentType = ContentType.VIDEO
+
+            logMediaEvents = random.nextBoolean()
+            logMPEvents = random.nextBoolean()
+        }.buildMPEvent("some name", null)
+        assertEquals(MParticle.EventType.Media, mediaSessionMPEvent.eventType)
+
     }
 
     private fun afterLogApiInvoked(mediaSession: MediaSession, options: Options? = null, onEvent: (Method) -> Unit) {

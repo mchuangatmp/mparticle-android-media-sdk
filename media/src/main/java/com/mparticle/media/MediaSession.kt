@@ -451,7 +451,7 @@ class MediaSession protected constructor(builder: Builder) {
     fun buildMPEvent(eventName: String, customAttributes: Map<String, String>?): MPEvent {
         val eventAttributes = attributes
         customAttributes?.let { eventAttributes.putAll(it) }
-        return MPEvent.Builder(eventName)
+        return MPEvent.Builder(eventName, MParticle.EventType.Media)
             .customAttributes(customAttributes)
             .build()
     }
