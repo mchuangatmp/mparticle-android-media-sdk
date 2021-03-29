@@ -321,6 +321,13 @@ class MediaSession protected constructor(builder: Builder) {
         logAdSummary(adContent)
     }
 
+    fun logAdClick(options: Options? = null) {
+        MediaEvent(this, MediaEventName.AD_CLICK, options = options).let {
+            it.mediaAd = adContent
+            logEvent(it)
+        }
+    }
+
     /**
      * Log a MediaEvent of type {@link MediaEventName.AD_SKIP}
      */

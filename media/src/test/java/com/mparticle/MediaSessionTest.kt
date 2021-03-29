@@ -399,6 +399,33 @@ class MediaSessionTest  {
         }
     }
 
+    @Test
+    fun testAdClick() {
+        val mparticle = MockMParticle()
+        val mediaSession = MediaSession.builder(mparticle) {
+            title = "hello"
+            mediaContentId ="123"
+            duration =1000
+        }
+
+        val events = mutableListOf<MediaEvent>()
+        mediaSession.mediaEventListener = { event ->
+            events.add(event)
+        }
+        mediaSession.logAdBreakStart(MediaAdBreak())
+        mediaSession.logAdStart(MediaAd())
+        mediaSession.logAdClick()
+        mediaSession.logAdEnd()
+        mediaSession.logAdBreakEnd()
+
+        assertEquals(5, events.size)
+        assertTrue(events.any { it.eventName == MediaEventName.AD_BREAK_START })
+        assertTrue(events.any { it.eventName == MediaEventName.AD_START})
+        assertTrue(events.any { it.eventName == MediaEventName.AD_CLICK})
+        assertTrue(events.any { it.eventName == MediaEventName.AD_END})
+        assertTrue(events.any { it.eventName == MediaEventName.AD_BREAK_END})
+    }
+
     fun BaseEvent.isPlayheadEvent(): Boolean {
         return if (this is MediaEvent) {
             eventName == MediaEventName.UPDATE_PLAYHEAD_POSITION
