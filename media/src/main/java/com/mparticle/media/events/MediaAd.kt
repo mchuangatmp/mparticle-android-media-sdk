@@ -1,5 +1,4 @@
 package com.mparticle.media.events
-import java.util.*
 
 class MediaAd(
     var title: String? = null,
@@ -11,8 +10,8 @@ class MediaAd(
     var placement: String? = null,
     var position: Int? = null,
     var siteId: String? = null,
-    var adStartTimestamp: Long? = null,
-    var adEndTimestamp: Long? = null,
-    var adSkipped: Boolean = false,
-    var adCompleted: Boolean = false
+    internal var adStartTimestamp: Long? = null,
+    internal var adEndTimestamp: Long? = null,
+    internal var adSkipped: Boolean = false,
+    internal var adCompleted: Boolean = false
 )

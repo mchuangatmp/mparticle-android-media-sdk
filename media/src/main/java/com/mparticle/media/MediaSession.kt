@@ -285,9 +285,6 @@ class MediaSession protected constructor(builder: Builder) {
 
     fun logAdStart(options: Options? = null, builder: MediaAd.() -> Unit) {
         val mediaAd = MediaAd()
-        mediaAd.adStartTimestamp = System.currentTimeMillis()
-        mediaSessionAdTotal += 1
-        mediaAd.id?.let { mediaSessionAdObjects.add(it) }
         mediaAd.builder()
         logAdStart(mediaAd, options)
     }
@@ -298,6 +295,9 @@ class MediaSession protected constructor(builder: Builder) {
      * @param ad the {@link MediaAd} instance
      */
     fun logAdStart(ad: MediaAd, options: Options? = null) {
+        ad.adStartTimestamp = System.currentTimeMillis()
+        mediaSessionAdTotal += 1
+        ad.id?.let { mediaSessionAdObjects.add(it) }
         adContent = ad
         val adStartEvent = MediaEvent(this, MediaEventName.AD_START, options = options).apply {
             mediaAd = ad

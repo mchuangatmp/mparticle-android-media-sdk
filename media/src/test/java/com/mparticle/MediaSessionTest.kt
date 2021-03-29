@@ -9,6 +9,7 @@ import java.lang.reflect.Method
 import java.util.*
 import kotlin.math.absoluteValue
 
+
 class MediaSessionTest  {
     private val random = Random()
     private val randomUtils = RandomUtils()
@@ -400,7 +401,7 @@ class MediaSessionTest  {
     }
 
     @Test
-    fun testAdClick() {
+    fun testLogAd() {
         val mparticle = MockMParticle()
         val mediaSession = MediaSession.builder(mparticle) {
             title = "hello"
@@ -412,18 +413,43 @@ class MediaSessionTest  {
         mediaSession.mediaEventListener = { event ->
             events.add(event)
         }
-        mediaSession.logAdBreakStart(MediaAdBreak())
-        mediaSession.logAdStart(MediaAd())
+
+        //test with java interface methods
+        mediaSession.logAdBreakStart(MediaAdBreak().apply { id = "adbreak 1" })
+        mediaSession.logAdStart(MediaAd().apply { id = "ad 1" })
         mediaSession.logAdClick()
         mediaSession.logAdEnd()
         mediaSession.logAdBreakEnd()
 
-        assertEquals(5, events.size)
-        assertTrue(events.any { it.eventName == MediaEventName.AD_BREAK_START })
-        assertTrue(events.any { it.eventName == MediaEventName.AD_START})
-        assertTrue(events.any { it.eventName == MediaEventName.AD_CLICK})
-        assertTrue(events.any { it.eventName == MediaEventName.AD_END})
-        assertTrue(events.any { it.eventName == MediaEventName.AD_BREAK_END})
+        //test with kotlin interface methods (overloads)
+        mediaSession.logAdBreakStart {
+            id = "adbreak 2"
+        }
+        mediaSession.logAdStart {
+            id = "ad 2"
+        }
+        mediaSession.logAdClick()
+        mediaSession.logAdEnd()
+        mediaSession.logAdBreakEnd()
+
+        assertEquals(10, events.size)
+        events.forEach {
+            it.mediaContent.apply {
+                assertEquals("hello", name)
+                assertEquals("123", contentId)
+                assertEquals(1000L, duration)
+            }
+        }
+        events[0].assertTrue { it.eventName == MediaEventName.AD_BREAK_START && it.adBreak!!.id == "adbreak 1" }
+        events[1].assertTrue { it.eventName == MediaEventName.AD_START && it.mediaAd!!.id == "ad 1" }
+        events[2].assertTrue { it.eventName == MediaEventName.AD_CLICK && it.mediaAd!!.id == "ad 1" }
+        events[3].assertTrue { it.eventName == MediaEventName.AD_END }
+        events[4].assertTrue { it.eventName == MediaEventName.AD_BREAK_END }
+        events[5].assertTrue { it.eventName == MediaEventName.AD_BREAK_START && it.adBreak!!.id == "adbreak 2" }
+        events[6].assertTrue { it.eventName == MediaEventName.AD_START && it.mediaAd!!.id == "ad 2" }
+        events[7].assertTrue { it.eventName == MediaEventName.AD_CLICK && it.mediaAd!!.id == "ad 2" }
+        events[8].assertTrue { it.eventName == MediaEventName.AD_END }
+        events[9].assertTrue { it.eventName == MediaEventName.AD_BREAK_END}
     }
 
     fun BaseEvent.isPlayheadEvent(): Boolean {
@@ -441,4 +467,8 @@ class MediaSessionTest  {
             loggedEvents.add(baseEvent)
         }
     }
+}
+
+fun <T: Any> T.assertTrue(assertion: (T) -> Boolean) {
+    assertion(this)
 }
