@@ -1,11 +1,6 @@
-import org.sonarqube.gradle.SonarQubeExtension
-
 plugins {
     id("com.android.library")
     kotlin("android")
-    kotlin("android.extensions")
-    id("org.sonarqube").version("2.7")
-
 }
 
 ext["kitDescription"] = "Media Api to supplement core SDK"
@@ -13,32 +8,31 @@ ext["kitDescription"] = "Media Api to supplement core SDK"
 apply(from= "../scripts/maven.gradle")
 
 android {
+    compileSdk = 31
     defaultConfig {
-        minSdkVersion(16)
-        compileSdkVersion(28)
+        minSdk = 16
+        targetSdk = 31
     }
 }
 
 repositories {
-    jcenter()
-    mavenLocal()
+    mavenCentral()
     google()
 }
 
-
 dependencies {
-    testImplementation(files("libs/test-utils.aar"))
-    testImplementation(files("libs/java-json.jar"))
-    testImplementation("junit:junit:4.12")
-
     implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
     implementation("com.mparticle:android-core:[5.11.3,)")
 
+    testImplementation(files("libs/test-utils.aar"))
+    testImplementation(files("libs/java-json.jar"))
+    testImplementation("junit:junit:4.12")
 }
-configure<SonarQubeExtension> {
+
+configure<org.sonarqube.gradle.SonarQubeExtension> {
     properties {
         property("sonar.projectName", "Android")
-        property("sonar.prjectKey", "Android")
+        property("sonar.projectKey", "Android")
     }
 }
 
