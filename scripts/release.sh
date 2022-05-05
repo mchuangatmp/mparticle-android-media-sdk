@@ -10,11 +10,3 @@ sed -i '.bak' "s/'com.mparticle:android-media:.*'/'com.mparticle:android-media:$
 #commit the version bump, tag, and push to private and public
 git add build.gradle
 git add README.md
-git commit -m "Update version to $1"
-git tag "v$1"
-git push origin "v$1"
-git remote add public git@github.com:mParticle/mparticle-android-media.git
-git push public "v$1"
-git push origin HEAD:development
-git push origin HEAD:master
-git push public HEAD:master
