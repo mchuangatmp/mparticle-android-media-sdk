@@ -1,5 +1,5 @@
 module.exports = {
-  branches: ["ci/SQDSDKS-3995-add-workflows"],
+  branches: ["main"],
   tagFormat: "v${version}",
   plugins: [
     [
