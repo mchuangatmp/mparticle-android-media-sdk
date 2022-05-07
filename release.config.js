@@ -23,9 +23,9 @@ module.exports = {
     [
       "@semantic-release/release-notes-generator",
       {
-        preset: "angular",
-        "writerOpts": {
-          "types": [
+        preset: "conventionalcommits",
+        presetConfig: {
+          types: [
             {
               "type": "feat",
               "section": "Features",
@@ -73,7 +73,7 @@ module.exports = {
             }
           ]
         }
-      },
+      }
     ],
     [
       "@semantic-release/changelog",
@@ -93,7 +93,7 @@ module.exports = {
       {
         assets: ["CHANGELOG.md", "build.gradle", "README.md"],
         message:
-          "chore(release): ${nextRelease.version} \n\n${nextRelease.notes}",
+          "ci: Update version to ${nextRelease.version} \n\n${nextRelease.notes}",
       },
     ],
   ],
