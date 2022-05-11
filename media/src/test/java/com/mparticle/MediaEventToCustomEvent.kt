@@ -1,5 +1,7 @@
 package com.mparticle
 
+import android.app.Application
+import com.mparticle.identity.BaseIdentityTask
 import com.mparticle.media.MediaSession
 import com.mparticle.media.events.*
 import com.mparticle.testutils.RandomUtils
@@ -7,6 +9,7 @@ import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertNotNull
 import org.junit.Test
 import java.util.*
+
 
 class MediaEventToCustomEvent {
     val random = Random()

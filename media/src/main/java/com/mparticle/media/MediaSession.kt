@@ -1,5 +1,6 @@
 package com.mparticle.media
 
+import android.annotation.SuppressLint
 import com.mparticle.MPEvent
 import com.mparticle.MParticle
 import com.mparticle.media.events.*

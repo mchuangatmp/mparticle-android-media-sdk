@@ -1,5 +1,11 @@
 package com.mparticle.media.events
 
+import android.app.Application
+import com.mparticle.MParticle
+import com.mparticle.MParticleOptions
+import com.mparticle.identity.BaseIdentityTask
+
+
 class MediaAd(
     var title: String? = null,
     var duration: Long? = null,
