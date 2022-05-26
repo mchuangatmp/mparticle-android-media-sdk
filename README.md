@@ -24,7 +24,7 @@ You can grab the Core SDK via Maven Central. Please see the badge above and foll
 
 ```groovy
 dependencies {
-    implementation 'com.mparticle:android-media:1.3.2'
+    implementation 'com.mparticle:android-media:1.4.0'
 }
 ```
 
