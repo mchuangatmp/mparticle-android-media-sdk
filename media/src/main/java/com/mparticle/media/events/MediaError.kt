@@ -1,4 +1,3 @@
 package com.mparticle.media.events
 
-class MediaError {
-}
+class MediaError(val message: String, val attributes: Map<String, Any?> = mapOf())

@@ -12,3 +12,6 @@ class Options(
      */
     var customAttributes: Map<String, String> = mutableMapOf()
 )
+
+@JvmSynthetic
+fun Options(builder: Options.() -> Unit): Options = Options().apply(builder)

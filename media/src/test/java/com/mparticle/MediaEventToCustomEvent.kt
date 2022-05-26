@@ -54,8 +54,8 @@ class MediaEventToCustomEvent {
         val customEvent = mediaEvent.toMPEvent()
         assertNotNull(customEvent)
         assertEquals(5, customEvent.customAttributes?.size)
-        customEvent.customAttributes?.apply {
-            assertMediaSessionPresent(mediaSession, customEvent.customAttributes!!)
+        customEvent.customAttributes?.also {
+            assertMediaSessionPresent(mediaSession, it)
         }
     }
 
@@ -83,10 +83,10 @@ class MediaEventToCustomEvent {
         val customEvent = mediaEvent.toMPEvent()
         assertNotNull(customEvent)
         assertEquals(7, customEvent.customAttributes?.size)
-        customEvent.customAttributes?.apply {
-            assertMediaSessionPresent(mediaSession, customEvent.customAttributes!!)
-            assertEquals(mediaSession.sessionId, get(MediaAttributeKeys.MEDIA_SESSION_ID))
-            assertEquals(playhead.toString(), get(MediaAttributeKeys.PLAYHEAD_POSITION))
+        customEvent.customAttributes?.also {
+            assertMediaSessionPresent(mediaSession, it)
+            assertEquals(mediaSession.sessionId, it.get(MediaAttributeKeys.MEDIA_SESSION_ID))
+            assertEquals(playhead, it.get(MediaAttributeKeys.PLAYHEAD_POSITION))
         }
     }
 
@@ -119,16 +119,17 @@ class MediaEventToCustomEvent {
                 index = random.nextInt()
                 title = randomUtils.getAlphaNumericString(24)
             }
+            error = MediaError(randomUtils.getAlphaNumericString(24), randomUtils.getRandomAttributes(6, false))
         }
         val customEvent = mediaEvent.toMPEvent()
         assertNotNull(customEvent)
         customEvent.customAttributes!!.apply {
             assertMediaSessionPresent(mediaSession, customEvent.customAttributes!!)
 
-            assertEquals(mediaEvent.qos!!.startupTime.toString(), remove(MediaAttributeKeys.QOS_STARTUP_TIME))
-            assertEquals(mediaEvent.qos!!.droppedFrames.toString(), remove(MediaAttributeKeys.QOS_DROPPED_FRAMES))
-            assertEquals(mediaEvent.qos!!.fps.toString(), remove(MediaAttributeKeys.QOS_FRAMES_PER_SECOND))
-            assertEquals(mediaEvent.qos!!.bitRate.toString(), remove(MediaAttributeKeys.QOS_BITRATE))
+            assertEquals(mediaEvent.qos!!.startupTime, remove(MediaAttributeKeys.QOS_STARTUP_TIME))
+            assertEquals(mediaEvent.qos!!.droppedFrames, remove(MediaAttributeKeys.QOS_DROPPED_FRAMES))
+            assertEquals(mediaEvent.qos!!.fps, remove(MediaAttributeKeys.QOS_FRAMES_PER_SECOND))
+            assertEquals(mediaEvent.qos!!.bitRate, remove(MediaAttributeKeys.QOS_BITRATE))
 
             assertEquals(mediaEvent.mediaAd!!.creative, remove(MediaAttributeKeys.AD_CREATIVE))
             assertEquals(mediaEvent.mediaAd!!.title, remove(MediaAttributeKeys.AD_TITLE))
@@ -136,27 +137,32 @@ class MediaEventToCustomEvent {
             assertEquals(mediaEvent.mediaAd!!.siteId, remove(MediaAttributeKeys.AD_SITE_ID))
             assertEquals(mediaEvent.mediaAd!!.advertiser, remove(MediaAttributeKeys.AD_ADVERTISING_ID))
             assertEquals(mediaEvent.mediaAd!!.campaign, remove(MediaAttributeKeys.AD_CAMPAIGN))
-            assertEquals(mediaEvent.mediaAd!!.duration.toString(), remove(MediaAttributeKeys.AD_DURATION))
+            assertEquals(mediaEvent.mediaAd!!.duration, remove(MediaAttributeKeys.AD_DURATION))
             assertEquals(mediaEvent.mediaAd!!.placement, remove(MediaAttributeKeys.AD_PLACEMENT))
-            assertEquals(mediaEvent.mediaAd!!.position.toString(), remove(MediaAttributeKeys.AD_POSITION))
+            assertEquals(mediaEvent.mediaAd!!.position, remove(MediaAttributeKeys.AD_POSITION))
 
-            assertEquals(mediaEvent.adBreak!!.duration.toString(), remove(MediaAttributeKeys.AD_BREAK_DURATION))
+            assertEquals(mediaEvent.adBreak!!.duration, remove(MediaAttributeKeys.AD_BREAK_DURATION))
             assertEquals(mediaEvent.adBreak!!.title, remove(MediaAttributeKeys.AD_BREAK_TITLE))
             assertEquals(mediaEvent.adBreak!!.id, remove(MediaAttributeKeys.AD_BREAK_ID))
             
-            assertEquals(mediaEvent.segment!!.duration.toString(), remove(MediaAttributeKeys.SEGMENT_DURATION))
-            assertEquals(mediaEvent.segment!!.index.toString(), remove(MediaAttributeKeys.SEGMENT_INDEX))
+            assertEquals(mediaEvent.segment!!.duration, remove(MediaAttributeKeys.SEGMENT_DURATION))
+            assertEquals(mediaEvent.segment!!.index, remove(MediaAttributeKeys.SEGMENT_INDEX))
             assertEquals(mediaEvent.segment!!.title, remove(MediaAttributeKeys.SEGMENT_TITLE))
+
+            assertEquals(mediaEvent.error!!.message, remove(MediaAttributeKeys.ERROR_MESSAGE))
+            assertEquals(mediaEvent.error!!.attributes.toAssertableString(), (remove(MediaAttributeKeys.ERROR_ATTRIBUTES) as Map<String, Any?>).toAssertableString())
 
             assertEquals(0, size)
         }
     }
 
-    fun assertMediaSessionPresent(mediaSession: MediaSession, customAttributes: MutableMap<String, String>) {
+    fun <T,V> Map<T, V>.toAssertableString() = entries.sortedBy { it.key.toString() }.joinToString { "${it.key}:{${it.value}" }
+
+    fun assertMediaSessionPresent(mediaSession: MediaSession, customAttributes: MutableMap<String, Any?>) {
         assertEquals(mediaSession.contentType, customAttributes.remove(MediaAttributeKeys.CONTENT_TYPE))
         assertEquals(mediaSession.streamType, customAttributes.remove(MediaAttributeKeys.STREAM_TYPE))
         assertEquals(mediaSession.title, customAttributes.remove(MediaAttributeKeys.TITLE))
         assertEquals(mediaSession.mediaContentId, customAttributes.remove(MediaAttributeKeys.CONTENT_ID))
-        assertEquals(mediaSession.duration.toString(), customAttributes.remove(MediaAttributeKeys.DURATION))
+        assertEquals(mediaSession.duration, customAttributes.remove(MediaAttributeKeys.DURATION))
     }
 }

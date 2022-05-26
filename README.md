@@ -54,7 +54,7 @@ Starting a MediaSession and logging events. The `MediaSession` fields `title`, `
     //start the MediaSession
     mediaSession.logMediaSessionStart()
     
-    //log events!
+    //log events
     mediaSession.logPlay()
     mediaSession.logPause()
 ```
@@ -117,7 +117,20 @@ mediaSession.mediaEventListener = { mediaEvent ->
 }
 ```
 
+#### Logging Media Errors
 
+The `MediaSession#logError(String, Map)` method is similar to the generic `MParticle#logError(String, Map)` method, but should be used for logging events specific to an individual `MediaSession`.
+
+Like all other `Media` events, "Error" events will not be sent to the MParticle Server by default, but will be consumed by local kits. To log this event to the MParticle Server, follow [the previously outlined instructions](#logging-mediaevents-as-custom-events-mpevent-to-the-mparticle-server)
+
+example: 
+```kotlin
+//log a MediaSession-specific error as a MediaEvent
+mediaSession.logError("Player Crashed", mapOf("foo", "bar"))
+
+//log a general error as an core event
+MParticle.getInstance()?.logError("Request timed out", mapOf("foo", "bar"))
+```
 
 # Contibution Guidelines
 

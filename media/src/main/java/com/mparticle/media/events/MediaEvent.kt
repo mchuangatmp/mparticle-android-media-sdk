@@ -29,6 +29,7 @@ open class MediaEvent(
     var bufferDuration: Long? = null
     var bufferPercent: Double? = null
     var bufferPosition: Long? = null
+    var error: MediaError? = null
 
     init {
         sessionId = session.sessionId
@@ -46,7 +47,7 @@ open class MediaEvent(
                 session.currentPlayheadPosition = options.currentPlayheadPosition
             }
             if (!options.customAttributes.isEmpty()) {
-                customAttributes = HashMap(options.customAttributes)
+                customAttributes = options.customAttributes.toMap()
             }
         }
     }
@@ -54,14 +55,14 @@ open class MediaEvent(
     fun toMPEvent(): MPEvent {
         val mediaAttributes = getSessionAttributes()
         mediaAttributes.putAll(getEventAttributes())
-        mediaAttributes.putAll(customAttributes?: mapOf())
+        mediaAttributes.putAll(customAttributeStrings?: mapOf())
         return MPEvent.Builder(eventName, MParticle.EventType.Media)
             .customAttributes(mediaAttributes)
             .build()
     }
 
-    internal fun getSessionAttributes(): MutableMap<String, String> {
-        val sessionAttributes = HashMap<String, String>()
+    internal fun getSessionAttributes(): MutableMap<String, Any?> {
+        val sessionAttributes = HashMap<String, Any?>()
         sessionAttributes.putIfNotNull(MediaAttributeKeys.MEDIA_SESSION_ID, sessionId)
 
         sessionAttributes.putIfNotNull(MediaAttributeKeys.PLAYHEAD_POSITION, playheadPosition)
@@ -73,8 +74,8 @@ open class MediaEvent(
         return sessionAttributes;
     }
 
-    internal fun getEventAttributes(): MutableMap<String, String> {
-        val eventAttributes = HashMap<String, String>()
+    internal fun getEventAttributes(): MutableMap<String, Any?> {
+        val eventAttributes = HashMap<String, Any?>()
 
         eventAttributes.putIfNotNull(MediaAttributeKeys.SEEK_POSITION, seekPosition)
         eventAttributes.putIfNotNull(MediaAttributeKeys.BUFFER_DURATION, bufferDuration)
@@ -107,6 +108,14 @@ open class MediaEvent(
             eventAttributes.putIfNotNull(MediaAttributeKeys.AD_BREAK_TITLE, adBreak.title)
             eventAttributes.putIfNotNull(MediaAttributeKeys.AD_BREAK_DURATION, adBreak.duration)
             eventAttributes.putIfNotNull(MediaAttributeKeys.AD_BREAK_ID, adBreak.id)
+        }
+        error?.also { error ->
+            eventAttributes.putIfNotNull(MediaAttributeKeys.ERROR_MESSAGE, error.message)
+            error.attributes.also { attributes ->
+                if (attributes.isNotEmpty()) {
+                    eventAttributes.putIfNotNull(MediaAttributeKeys.ERROR_ATTRIBUTES, attributes)
+                }
+            }
         }
         return eventAttributes
     }
@@ -169,12 +178,18 @@ open class MediaEvent(
 
         json.put("session id", sessionId)
         json.put("timestamp", timeStamp)
+        error?.apply {
+            json.put("error message", message)
+            if (attributes.isNotEmpty()) {
+                json.put("error attributes", attributes)
+            }
+        }
         return json.toString()
     }
     
-    fun HashMap<String, String>.putIfNotNull(key: String, value: Any?) {
-        if (value != null) {
-            put(key, value.toString())
+    fun <T> HashMap<String, T>.putIfNotNull(key: String, value: T?) {
+        value?.also {
+            put(key, it)
         }
     }
 }

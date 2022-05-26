@@ -3,6 +3,7 @@ package com.mparticle
 import com.mparticle.media.MediaSession
 import com.mparticle.media.events.*
 import com.mparticle.testutils.RandomUtils
+import com.mparticle.testutils.TestingUtils
 import junit.framework.Assert.*
 import org.junit.Test
 import java.lang.reflect.Method
@@ -202,7 +203,7 @@ class MediaSessionTest  {
         fun testSessionMediaContentAttributes() {
             assertEquals(mediaSession.mediaContentId, attributes[MediaAttributeKeys.CONTENT_ID])
             assertEquals(mediaSession.title, attributes[MediaAttributeKeys.TITLE])
-            assertEquals(mediaSession.duration.toString(), attributes[MediaAttributeKeys.DURATION])
+            assertEquals(mediaSession.duration, attributes[MediaAttributeKeys.DURATION])
             assertEquals(mediaSession.contentType, attributes[MediaAttributeKeys.CONTENT_TYPE])
             assertEquals(mediaSession.streamType, attributes[MediaAttributeKeys.STREAM_TYPE])
         }
@@ -217,7 +218,7 @@ class MediaSessionTest  {
 
         attributes = mediaSession.attributes
         assertEquals(7, attributes.size)
-        assertEquals(10.toString(), attributes[MediaAttributeKeys.PLAYHEAD_POSITION])
+        assertEquals(10L, attributes[MediaAttributeKeys.PLAYHEAD_POSITION])
 
         //make sure no other Media Sessions are started
         afterLogApiInvoked(mediaSession) {}
@@ -254,9 +255,12 @@ class MediaSessionTest  {
             if (it.name != "logPlayheadPosition") {
                 assertTrue(it.toString(), mparticle.loggedEvents.size >= 1)
                 val event = mparticle.loggedEvents[0] as MediaEvent
-                assertTrue(it.toString(), event.customAttributes!!.containsKey("testKey1"))
+                if (event.customAttributes?.containsKey("testKey1") == false) {
+                    println("hi")
+                }
+                assertTrue(it.toString(), event.customAttributes?.containsKey("testKey1") ?: false)
                 assertTrue(it.toString(), event.customAttributes?.get("testKey1") == "testValue1")
-                assertTrue(it.toString(), event.customAttributes!!.containsKey("testKey2"))
+                assertTrue(it.toString(), event.customAttributes?.containsKey("testKey2") ?: false)
                 assertTrue(it.toString(), event.customAttributes?.get("testKey2") == "testValue2")
 
                 assertEquals(options.currentPlayheadPosition, mediaSession.currentPlayheadPosition)
@@ -382,6 +386,8 @@ class MediaSessionTest  {
                     arguments[i] = MediaQoS()
                 } else if (type == Options::class.java) {
                     arguments[i] = options
+                } else if (type == Map::class.java) {
+                    arguments[i] = RandomUtils.getInstance().getRandomAttributes(6, false)
                 } else {
                     throw RuntimeException("unknown type: " + type.name + "\nmethod: " + method.toString())
                 }

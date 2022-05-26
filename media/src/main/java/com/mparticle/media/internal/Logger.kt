@@ -115,6 +115,7 @@ object Logger {
                     MParticle.LogLevel.DEBUG -> debug(error, messages)
                     MParticle.LogLevel.VERBOSE -> verbose(error, messages)
                     MParticle.LogLevel.INFO -> info(error, messages)
+                    else -> info(error, messages)
                 }
             }
         }
@@ -149,43 +150,43 @@ object Logger {
 
     open class DefaultLogHandler : AbstractLogHandler() {
 
-        public override fun verbose(error: Throwable?, messages: String) {
+        public override fun verbose(error: Throwable?, message: String) {
             if (error != null) {
-                Log.v(LOG_TAG, messages, error)
+                Log.v(LOG_TAG, message, error)
             } else {
-                Log.v(LOG_TAG, messages)
+                Log.v(LOG_TAG, message)
             }
         }
 
-        public override fun info(error: Throwable?, messages: String) {
+        public override fun info(error: Throwable?, message: String) {
             if (error != null) {
-                Log.i(LOG_TAG, messages, error)
+                Log.i(LOG_TAG, message, error)
             } else {
-                Log.i(LOG_TAG, messages)
+                Log.i(LOG_TAG, message)
             }
         }
 
-        public override fun debug(error: Throwable?, messages: String) {
+        public override fun debug(error: Throwable?, message: String) {
             if (error != null) {
-                Log.d(LOG_TAG, messages, error)
+                Log.d(LOG_TAG, message, error)
             } else {
-                Log.d(LOG_TAG, messages)
+                Log.d(LOG_TAG, message)
             }
         }
 
-        public override fun warning(error: Throwable?, messages: String) {
+        public override fun warning(error: Throwable?, message: String) {
             if (error != null) {
-                Log.w(LOG_TAG, messages, error)
+                Log.w(LOG_TAG, message, error)
             } else {
-                Log.w(LOG_TAG, messages)
+                Log.w(LOG_TAG, message)
             }
         }
 
-        public override fun error(error: Throwable?, messages: String) {
+        public override fun error(error: Throwable?, message: String) {
             if (error != null) {
-                Log.e(LOG_TAG, messages, error)
+                Log.e(LOG_TAG, message, error)
             } else {
-                Log.e(LOG_TAG, messages)
+                Log.e(LOG_TAG, message)
             }
         }
     }

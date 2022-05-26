@@ -21,4 +21,5 @@ object MediaEventName {
     const val SEGMENT_END = "Segment End"
     const val SEGMENT_SKIP = "Segment Skip"
     const val UPDATE_QOS = "Update QoS"
+    const val ERROR = "Error"
 }

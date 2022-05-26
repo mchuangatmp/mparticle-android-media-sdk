@@ -62,7 +62,7 @@ class MediaSession protected constructor(builder: Builder) {
         internal set
     var sessionQoS = MediaQoS()
 
-    var attributes: MutableMap<String, String> = mutableMapOf()
+    var attributes: MutableMap<String, Any?> = mutableMapOf()
         get() = MediaEvent(this).getSessionAttributes()
         private set
 
@@ -427,6 +427,20 @@ class MediaSession protected constructor(builder: Builder) {
         val mediaQos = MediaQoS()
         mediaQos.builder()
         logQos(mediaQos, options)
+    }
+
+    /**
+     * Log a MediaEvent of type {@link MediaEventName.ERROR}. For these events, you will be able
+     * to query the {@link MediaEvent#error} field
+     *
+     * @param message the error message
+     * @param attributes a Map of addition information about the error
+     */
+    fun logError(message: String, attributes: Map<String, Any?> = mapOf(), options: Options? = null) {
+        val errorEvent = MediaEvent(this, MediaEventName.ERROR, options = options).apply {
+            error = MediaError(message, attributes)
+        }
+        logEvent(errorEvent)
     }
 
     /**

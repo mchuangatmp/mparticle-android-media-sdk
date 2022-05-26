@@ -54,4 +54,8 @@ object MediaAttributeKeys {
     const val SEGMENT_TITLE = "segment_title"
     const val SEGMENT_INDEX = "segment_index"
     const val SEGMENT_DURATION = "segment_duration"
+
+    //Error
+    const val ERROR_MESSAGE = "error_message"
+    const val ERROR_ATTRIBUTES = "error_attributes"
 }
