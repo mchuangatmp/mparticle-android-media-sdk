@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/mParticle/mparticle-android-media-sdk/compare/v1.4.0...v1.4.1) (2022-07-07)
+
+
+### Bug Fixes
+
+* artifactId value ([#4](https://github.com/mParticle/mparticle-android-media-sdk/issues/4)) ([586c79f](https://github.com/mParticle/mparticle-android-media-sdk/commit/586c79f9a13f792c8fd7882fbea727257917adfd))
+
 ## [1.4.0](https://github.com/mParticle/mparticle-android-media-sdk/compare/v1.3.2...v1.4.0) (2022-05-26)
 
 
