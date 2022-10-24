@@ -8,13 +8,14 @@ ext["kitDescription"] = "Media Api to supplement core SDK"
 apply(from= "../.scripts/maven.gradle")
 
 android {
-    compileSdk = 31
+    namespace = "com.mparticle.media"
+    compileSdk = 33
     defaultConfig {
         minSdk = 16
-        targetSdk = 31
+        targetSdk = 33
     }
     lint {
-        abortOnError = false
+        abortOnError = true
     }
 }
 
