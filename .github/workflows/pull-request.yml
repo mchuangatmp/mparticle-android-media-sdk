@@ -87,3 +87,8 @@ jobs:
         with:
           name: "kotlin-lint-results"
           path: ./**/build/reports/**
+
+  automerge-dependabot:
+    name: "Save PR Number for Dependabot Automerge"
+    needs: [ unit-tests, lint-checks, kotlin-lint-checks ]
+    uses: mParticle/mparticle-workflows/.github/workflows/dependabot-save-pr-number.yml@ci/SQDSDKS-4694
