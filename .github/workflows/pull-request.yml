@@ -91,4 +91,4 @@ jobs:
   automerge-dependabot:
     name: "Save PR Number for Dependabot Automerge"
     needs: [ unit-tests, lint-checks, kotlin-lint-checks ]
-    uses: mParticle/mparticle-workflows/.github/workflows/dependabot-save-pr-number.yml@ci/SQDSDKS-4694
+    uses: mParticle/mparticle-workflows/.github/workflows/dependabot-save-pr-number.yml@main
